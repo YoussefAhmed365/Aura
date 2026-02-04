@@ -122,37 +122,45 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                     children: [
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.favorite_outline_rounded, color: Colors.white),
+                        icon: const Icon(Icons.favorite_outline_rounded),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.info_outline_rounded, color: Colors.white),
+                        icon: const Icon(Icons.info_outline_rounded),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.subtitles, color: Colors.white),
+                        icon: const Icon(Icons.subtitles),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.playlist_add, color: Colors.white),
+                        icon: const Icon(Icons.playlist_add),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.share_rounded, color: Colors.white),
+                        icon: const Icon(Icons.share_rounded),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      ElevatedButton(
-                        onPressed: () {},
+                      InkWell(
+                        onTap: () {},
                         onLongPress: () {},
-                        style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.transparent), elevation: WidgetStateProperty.all(0), minimumSize: WidgetStateProperty.all(Size.zero), padding: WidgetStateProperty.all(const EdgeInsets.all(8))),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.navigate_next, size: 28, color: Colors.white),
-                            const SizedBox(width: 3),
-                            Container(height: 25, width: 1, color: Colors.grey),
-                            const SizedBox(width: 3),
-                            const Icon(Icons.queue_music_rounded, size: 28, color: Colors.white),
-                          ],
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.navigate_next, size: 28, color: Theme.of(context).colorScheme.onSurface),
+                              const SizedBox(width: 3),
+                              Container(height: 25, width: 1, color: Theme.of(context).colorScheme.outline),
+                              const SizedBox(width: 3),
+                              Icon(Icons.queue_music_rounded, size: 28, color: Theme.of(context).colorScheme.onSurface),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -199,26 +207,31 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                     children: [
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.equalizer_rounded, color: Colors.white70, size: 28),
+                        icon: const Icon(Icons.equalizer_rounded, size: 28),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 40),
+                        icon: const Icon(Icons.skip_previous_rounded, size: 40),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      Container(
-                        decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-                        child: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _playController = !_playController;
-                            });
-                          },
-                          icon: Icon(_playController ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.black, size: 40),
+                      IconButton.filled(
+                        style: IconButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _playController = !_playController;
+                          });
+                        },
+                        iconSize: 40,
+                        icon: Icon(_playController ? Icons.pause_rounded : Icons.play_arrow_rounded),
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 40),
+                        icon: const Icon(Icons.skip_next_rounded, size: 40),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
 
                       // THE MODE BUTTON
@@ -226,7 +239,8 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                         message: _modeToolTip[_playModeController],
                         child: IconButton(
                           onPressed: _changePlayMode,
-                          icon: Icon(_playModeIcon, color: Colors.white70, size: 28),
+                          icon: Icon(_playModeIcon, size: 28),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           padding: const EdgeInsets.all(16),
                         ),
                       ),

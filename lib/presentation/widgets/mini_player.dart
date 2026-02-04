@@ -36,13 +36,17 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: _openMusicPlayer,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        decoration: BoxDecoration(color: Color(0xFF231344), borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
-          mainAxisAlignment: .spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               children: [
@@ -62,12 +66,23 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text("name", style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(
+                  "name",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
             Row(
               children: [
-                IconButton(onPressed: () {}, icon: Icon(Icons.skip_previous, size: 35)),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.skip_previous, size: 35),
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 IconButton(
                   onPressed: () {
                     setState(() {
@@ -80,8 +95,13 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                     });
                   },
                   icon: Icon(_playController ? Icons.pause_circle : Icons.play_circle, size: 35),
+                  color: colorScheme.onSurfaceVariant,
                 ),
-                IconButton(onPressed: () {}, icon: Icon(Icons.skip_next, size: 35)),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.skip_next, size: 35),
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ],
             ),
           ],
