@@ -48,7 +48,19 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
     return Scaffold(
       body: Stack(
         children: [
-          PageView(controller: _pageController, onPageChanged: _onPageChanged, physics: const PageScrollPhysics(), children: const [HomePage(), SongsPage(), PlaylistsPage(), SearchPage(), SettingsPage()]),
+          // Background Gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
+            ),
+          ),
+
+          // Page Content
+          SafeArea(
+            child: PageView(controller: _pageController, onPageChanged: _onPageChanged, physics: const PageScrollPhysics(), children: const [HomePage(), SongsPage(), PlaylistsPage(), SearchPage(), SettingsPage()]),
+          ),
+
+          // Mini Player
           Positioned(bottom: 10, left: 20, right: 20, child: MiniPlayer()),
         ],
       ),

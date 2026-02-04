@@ -5,12 +5,8 @@ class PlaylistsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Column(
-          children: [
-            Text("Aura - Playlists", style: Theme.of(context).textTheme.titleLarge)
-          ],
-        ),
+    return SafeArea(
+      child: Column(children: [Text("Aura - Playlists", style: Theme.of(context).textTheme.titleLarge)]),
     );
   }
 }
