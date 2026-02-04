@@ -14,6 +14,22 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   int _playModeController = 0;
   IconData _playModeIcon = Icons.repeat_rounded;
   final List<String> _modeToolTip = ['Shuffle Mode Is Off', 'Shuffle Mode Is On'];
+  SliderThemeData? _sliderThemeData;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sliderThemeData = SliderTheme.of(context).copyWith(
+      activeTrackColor: Colors.white,
+      inactiveTrackColor: Colors.white.withAlpha(77),
+      thumbColor: Colors.white,
+      trackShape: const RoundedRectSliderTrackShape(),
+      trackHeight: 4.0,
+      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10.0, elevation: 0),
+      overlayColor: Colors.white.withAlpha(26),
+      overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0),
+    );
+  }
 
   void _changePlayMode() {
     setState(() {
@@ -152,9 +168,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                     child: Column(
                       children: [
                         SliderTheme(
-                          data: SliderTheme.of(
-                            context,
-                          ).copyWith(activeTrackColor: Colors.white, inactiveTrackColor: Colors.white.withAlpha(77), thumbColor: Colors.white, trackShape: const RoundedRectSliderTrackShape(), trackHeight: 4.0, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10.0, elevation: 0), overlayColor: Colors.white.withAlpha(26), overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0)),
+                          data: _sliderThemeData!,
                           child: Slider(
                             value: _currentSliderValue,
                             max: 100,
