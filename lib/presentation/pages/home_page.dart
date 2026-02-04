@@ -1,0 +1,163 @@
+import 'dart:ui';
+import 'package:flutter/material.dart';
+
+final List<Map<String, dynamic>> playlists = [
+  {"image": "assets/images/cover-1.jpg", "name": "Chill Hits", "songs": 13},
+  {"image": "assets/images/cover-2.jpg", "name": "My Playlist", "songs": 54},
+  {"image": "assets/images/cover-3.jpg", "name": "Rock", "songs": 27},
+];
+
+final List<Map<String, dynamic>> favorites = [
+  {"name": "Faded", "author": "Alan Walker", "album": "Alan Walker", "duration": "3:32"},
+  {"name": "Blinding Lights", "author": "The Weeknd", "album": null, "duration": "3:20"},
+  {"name": "Shape of You", "author": "Ed Sheeran", "album": "Ed Sheeran", "duration": "3:53"},
+  {"name": "Someone You Loved", "author": "Lewis Capaldi", "album": "Lewis Capaldi", "duration": "3:02"},
+  {"name": "Dance Monkey", "author": "Tones and I", "album": null, "duration": "3:29"},
+];
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Container(
+              padding: const EdgeInsets.only(left: 20),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 140),
+                    Text("Your Mix", style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 220,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: playlists.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.only(right: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 150,
+                                  height: 150,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    image: DecorationImage(image: AssetImage(playlists[index]['image']), fit: BoxFit.cover),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(playlists[index]['name']),
+                                const SizedBox(height: 5),
+                                Text("${playlists[index]['songs']} Songs", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Text("Favorites", style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 20),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: favorites.length,
+                        separatorBuilder: (context, index) {
+                          return const Divider(thickness: 0.15, height: 20, color: Colors.grey);
+                        },
+                        itemBuilder: (context, index) {
+                          return Row(
+                            children: [
+                              Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(8)),
+                                child: const Icon(Icons.music_note_rounded, color: Colors.white),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(favorites[index]['name'] ?? 'Unknown Title', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white)),
+                                    Text(favorites[index]['author'] ?? 'Unknown Artist', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70)),
+                                    Text(favorites[index]['album'] ?? 'Unknown Album', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white54)),
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(favorites[index]['duration'] ?? '--:--', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white70)),
+                                  const SizedBox(width: 15),
+                                  const Icon(Icons.more_vert_rounded, color: Colors.white),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 20,
+              left: 20,
+              right: 20,
+              height: 100,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [Colors.white.withAlpha(16), Colors.white.withAlpha(5)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withAlpha(30)),
+                    ),
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Aura", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
+                            Text("Good Evening", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white70)),
+                          ],
+                        ),
+                        const Spacer(),
+                        Container(
+                          decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+                          child: IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded), iconSize: 24, color: Colors.white, padding: const EdgeInsets.all(10), constraints: const BoxConstraints()),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
