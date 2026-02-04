@@ -119,9 +119,14 @@ class PlaylistController {
         //Check if Playlist exists based in Id
         if (!checkPlaylistId(playlistId)) result.success(false)
         else {
-            MediaStore.Audio.Playlists.Members.moveItem(resolver, playlistId.toLong(), from, to)
+            movePlaylistMember(resolver, playlistId.toLong(), from, to)
             result.success(true)
         }
+    }
+
+    fun movePlaylistMember(resolver: ContentResolver?, playlistId: Long, from: Int, to: Int): Boolean {
+        if (resolver == null) return false
+        return MediaStore.Audio.Playlists.Members.moveItem(resolver, playlistId, from, to)
     }
 
     //
