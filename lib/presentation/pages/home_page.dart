@@ -80,34 +80,32 @@ class _HomePageState extends State<HomePage> {
                           return const Divider(thickness: 0.15, height: 20, color: Colors.grey);
                         },
                         itemBuilder: (context, index) {
-                          return Row(
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(8)),
-                                child: const Icon(Icons.music_note_rounded, color: Colors.white),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(favorites[index]['name'] ?? 'Unknown Title', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white)),
-                                    Text(favorites[index]['author'] ?? 'Unknown Artist', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70)),
-                                    Text(favorites[index]['album'] ?? 'Unknown Album', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white54)),
-                                  ],
-                                ),
-                              ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(favorites[index]['duration'] ?? '--:--', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white70)),
-                                  const SizedBox(width: 15),
-                                  const Icon(Icons.more_vert_rounded, color: Colors.white),
-                                ],
-                              ),
-                            ],
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(8)),
+                              child: Icon(Icons.music_note_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            ),
+                            title: Text(favorites[index]['name'] ?? 'Unknown Title', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(favorites[index]['author'] ?? 'Unknown Artist', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                if (favorites[index]['album'] != null)
+                                  Text(favorites[index]['album'] as String, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(favorites[index]['duration'] ?? '--:--', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                const SizedBox(width: 15),
+                                Icon(Icons.more_vert_rounded, color: Theme.of(context).colorScheme.onSurface),
+                              ],
+                            ),
+                            onTap: () {},
                           );
                         },
                       ),
