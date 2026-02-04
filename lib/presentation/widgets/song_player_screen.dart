@@ -120,31 +120,11 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.favorite_outline_rounded),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.info_outline_rounded),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.subtitles),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.playlist_add),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.share_rounded),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.favorite_outline_rounded), color: Theme.of(context).colorScheme.onSurface),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.info_outline_rounded), color: Theme.of(context).colorScheme.onSurface),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.subtitles), color: Theme.of(context).colorScheme.onSurface),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.playlist_add), color: Theme.of(context).colorScheme.onSurface),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.share_rounded), color: Theme.of(context).colorScheme.onSurface),
                       InkWell(
                         onTap: () {},
                         onLongPress: () {},
@@ -205,21 +185,10 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.equalizer_rounded, size: 28),
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.skip_previous_rounded, size: 40),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.equalizer_rounded, size: 28), color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.skip_previous_rounded, size: 40), color: Theme.of(context).colorScheme.onSurface),
                       IconButton.filled(
-                        style: IconButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
+                        style: IconButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primaryContainer, foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer),
                         onPressed: () {
                           setState(() {
                             _playController = !_playController;
@@ -228,21 +197,12 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                         iconSize: 40,
                         icon: Icon(_playController ? Icons.pause_rounded : Icons.play_arrow_rounded),
                       ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.skip_next_rounded, size: 40),
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                      IconButton(onPressed: () {}, icon: const Icon(Icons.skip_next_rounded, size: 40), color: Theme.of(context).colorScheme.onSurface),
 
                       // THE MODE BUTTON
                       Tooltip(
                         message: _modeToolTip[_playModeController],
-                        child: IconButton(
-                          onPressed: _changePlayMode,
-                          icon: Icon(_playModeIcon, size: 28),
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          padding: const EdgeInsets.all(16),
-                        ),
+                        child: IconButton(onPressed: _changePlayMode, icon: Icon(_playModeIcon, size: 28), color: Theme.of(context).colorScheme.onSurfaceVariant, padding: const EdgeInsets.all(16)),
                       ),
                     ],
                   ),

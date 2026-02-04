@@ -34,7 +34,10 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
                 const SizedBox(height: 140),
+
+                // Playlists
                 Text("Your Mix", style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -66,7 +69,10 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                 ),
+
                 const SizedBox(height: 30),
+
+                // Favorites
                 Text("Favorites", style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
                 const SizedBox(height: 20),
                 Padding(

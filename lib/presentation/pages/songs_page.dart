@@ -5,7 +5,8 @@ class SongsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(children: [Text("Aura - Songs", style: Theme.of(context).textTheme.titleLarge)]),
     );
   }

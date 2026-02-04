@@ -5,8 +5,6 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(children: [Text("Aura - Search", style: Theme.of(context).textTheme.titleLarge)]),
-    );
+    return Column(children: [Text("Aura - Search", style: Theme.of(context).textTheme.titleLarge)]);
   }
 }
