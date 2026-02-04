@@ -1,10 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:aura/presentation/widgets/top_bar.dart';
 
-final List<Map<String, dynamic>> playlists = [
-  {"image": "assets/images/cover-1.jpg", "name": "Chill Hits", "songs": 13},
-  {"image": "assets/images/cover-2.jpg", "name": "My Playlist", "songs": 54},
-  {"image": "assets/images/cover-3.jpg", "name": "Rock", "songs": 27},
+class PlaylistModel {
+  final String name;
+  final int songs;
+  final ImageProvider imageProvider;
+
+  const PlaylistModel({
+    required this.name,
+    required this.songs,
+    required this.imageProvider,
+  });
+}
+
+final List<PlaylistModel> playlists = [
+  const PlaylistModel(
+    imageProvider: AssetImage("assets/images/cover-1.jpg"),
+    name: "Chill Hits",
+    songs: 13,
+  ),
+  const PlaylistModel(
+    imageProvider: AssetImage("assets/images/cover-2.jpg"),
+    name: "My Playlist",
+    songs: 54,
+  ),
+  const PlaylistModel(
+    imageProvider: AssetImage("assets/images/cover-3.jpg"),
+    name: "Rock",
+    songs: 27,
+  ),
 ];
 
 final List<Map<String, dynamic>> favorites = [
@@ -56,13 +80,13 @@ class _HomePageState extends State<HomePage> {
                               height: 150,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
-                                image: DecorationImage(image: AssetImage(playlists[index]['image']), fit: BoxFit.cover),
+                                image: DecorationImage(image: playlists[index].imageProvider, fit: BoxFit.cover),
                               ),
                             ),
                             const SizedBox(height: 10),
-                            Text(playlists[index]['name']),
+                            Text(playlists[index].name),
                             const SizedBox(height: 5),
-                            Text("${playlists[index]['songs']} Songs", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                            Text("${playlists[index].songs} Songs", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
                           ],
                         ),
                       );
