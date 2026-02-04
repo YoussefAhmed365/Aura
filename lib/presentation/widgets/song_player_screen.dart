@@ -10,10 +10,16 @@ class SongPlayerScreen extends StatefulWidget {
 
 class _SongPlayerScreenState extends State<SongPlayerScreen> {
   bool _playController = false;
-  double _currentSliderValue = 30;
+  final ValueNotifier<double> _sliderValueNotifier = ValueNotifier<double>(30);
   int _playModeController = 0;
   IconData _playModeIcon = Icons.repeat_rounded;
   final List<String> _modeToolTip = ['Shuffle Mode Is Off', 'Shuffle Mode Is On'];
+
+  @override
+  void dispose() {
+    _sliderValueNotifier.dispose();
+    super.dispose();
+  }
 
   void _changePlayMode() {
     setState(() {
@@ -155,13 +161,16 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                           data: SliderTheme.of(
                             context,
                           ).copyWith(activeTrackColor: Colors.white, inactiveTrackColor: Colors.white.withAlpha(77), thumbColor: Colors.white, trackShape: const RoundedRectSliderTrackShape(), trackHeight: 4.0, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10.0, elevation: 0), overlayColor: Colors.white.withAlpha(26), overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0)),
-                          child: Slider(
-                            value: _currentSliderValue,
-                            max: 100,
-                            onChanged: (double value) {
-                              setState(() {
-                                _currentSliderValue = value;
-                              });
+                          child: ValueListenableBuilder<double>(
+                            valueListenable: _sliderValueNotifier,
+                            builder: (context, value, child) {
+                              return Slider(
+                                value: value,
+                                max: 100,
+                                onChanged: (double newValue) {
+                                  _sliderValueNotifier.value = newValue;
+                                },
+                              );
                             },
                           ),
                         ),
