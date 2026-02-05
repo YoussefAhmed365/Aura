@@ -5,6 +5,7 @@ import 'package:aura/presentation/pages/songs_page.dart';
 import 'package:aura/presentation/pages/playlists_page.dart';
 import 'package:aura/presentation/pages/search_page.dart';
 import 'package:aura/presentation/pages/settings_page.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 class MainWrapperPage extends StatefulWidget {
   const MainWrapperPage({super.key});
@@ -14,13 +15,25 @@ class MainWrapperPage extends StatefulWidget {
 }
 
 class _MainWrapperPageState extends State<MainWrapperPage> {
+  final OnAudioQuery _audioQuery = OnAudioQuery();
   int _currentIndex = 0;
   late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    requestPermission();
     _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  void requestPermission() async {
+    // التحقق من الصلاحيات وطلبها إذا لم تكن ممنوحة
+    bool permissionStatus = await _audioQuery.permissionsStatus();
+    if (!permissionStatus) {
+      await _audioQuery.permissionsRequest();
+    }
+    // إعادة بناء الصفحة بعد الحصول على الإذن لتحديث القائمة
+    setState(() {});
   }
 
   @override
