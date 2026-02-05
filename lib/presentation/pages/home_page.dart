@@ -146,7 +146,7 @@ class _HomePageState extends State<HomePage> {
 
             // Favorites List
             SliverPadding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -182,7 +182,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     }
                     // Separator
-                    return const Divider(thickness: 0.15, height: 20, color: Colors.grey);
+                    return const Divider(thickness: 0.15, height: 10, color: Colors.grey);
                   },
                   childCount: favorites.isNotEmpty ? favorites.length * 2 - 1 : 0,
                 ),
