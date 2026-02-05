@@ -54,7 +54,7 @@ dependencies:
   hive_flutter: ^1.1.0 # Extension for Hive. Makes it easier to use Hive in Flutter apps
 
   # UI & Design
-  google_fonts: ^8.0.0
+  google_fonts: ^8.0.1
   flutter_animate: ^4.5.0
   palette_generator: ^0.3.3+7 # To extract colors of Aura
   fluttertoast: ^9.0.0
