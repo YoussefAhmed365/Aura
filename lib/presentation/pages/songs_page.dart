@@ -19,14 +19,11 @@ class _SongsPageState extends State<SongsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          // عنوان الصفحة
           Text("Aura - Songs", style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 20),
 
-          // 3. استخدام FutureBuilder لجلب الأغاني
           Expanded(
             child: FutureBuilder<List<SongModel>>(
-              // استدعاء دالة البحث عن الأغاني
               future: _audioQuery.querySongs(
                 sortType: null, // ترتيب افتراضي
                 orderType: OrderType.ASC_OR_SMALLER,
@@ -34,17 +31,17 @@ class _SongsPageState extends State<SongsPage> {
                 ignoreCase: true,
               ),
               builder: (context, item) {
-                // حالة التحميل
+                // Loading
                 if (item.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                // حالة عدم وجود أغاني
+                // If There's No Music
                 if (item.data == null || item.data!.isEmpty) {
                   return const Center(child: Text("No songs found!"));
                 }
 
-                // 4. عرض الأغاني في قائمة
+                // Show Music
                 return Scrollbar(
                   thickness: 6,
                   radius: const Radius.circular(10),
@@ -54,7 +51,7 @@ class _SongsPageState extends State<SongsPage> {
                     controller: _scrollController,
                     itemCount: item.data!.length,
                     itemBuilder: (context, index) {
-                      // استخراج بيانات الأغنية
+                      // Get Song Info
                       SongModel song = item.data![index];
 
                       return ListTile(
@@ -70,7 +67,7 @@ class _SongsPageState extends State<SongsPage> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        // صورة الأغنية (Artwork)
+                        // Song Cover (ArtWork)
                         leading: QueryArtworkWidget(
                           id: song.id,
                           type: ArtworkType.AUDIO,

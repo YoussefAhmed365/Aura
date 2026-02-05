@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aura/presentation/widgets/top_bar.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 class PlaylistModel {
   final String name;
@@ -47,6 +48,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final OnAudioQuery _audioQuery = OnAudioQuery();
+
+  @override
+  void initState() {
+    super.initState();
+    requestPermission();
+  }
+
+  void requestPermission() async {
+    bool permissionStatus = await _audioQuery.permissionsStatus();
+    if (!permissionStatus) {
+      await _audioQuery.permissionsRequest();
+    }
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
