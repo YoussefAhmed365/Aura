@@ -27,9 +27,12 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
   void _openMusicPlayer() {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // يسمح للمشغل بأخذ كامل الشاشة
-      useRootNavigator: true, // يغطي الـ BottomNavigationBar إذا وجد
-      backgroundColor: Colors.transparent, // لجعل الحواف شفافة
+      isScrollControlled: true,
+      // يسمح للمشغل بأخذ كامل الشاشة
+      useRootNavigator: true,
+      // يغطي الـ BottomNavigationBar إذا وجد
+      backgroundColor: Colors.transparent,
+      // لجعل الحواف شفافة
       builder: (context) => const SongPlayerScreen(),
     );
   }
@@ -40,10 +43,10 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
     return GestureDetector(
       onTap: _openMusicPlayer,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.only(topRight: Radius.circular(40), topLeft: Radius.circular(40)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -68,9 +71,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                 const SizedBox(width: 10),
                 Text(
                   "name",
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -78,11 +79,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
             ),
             Row(
               children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.skip_previous, size: 35),
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                IconButton(onPressed: () {}, icon: const Icon(Icons.skip_previous, size: 35), color: colorScheme.onSurfaceVariant),
                 IconButton(
                   onPressed: () {
                     setState(() {
@@ -97,11 +94,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                   icon: Icon(_playController ? Icons.pause_circle : Icons.play_circle, size: 35),
                   color: colorScheme.onSurfaceVariant,
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.skip_next, size: 35),
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                IconButton(onPressed: () {}, icon: const Icon(Icons.skip_next, size: 35), color: colorScheme.onSurfaceVariant),
               ],
             ),
           ],

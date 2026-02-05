@@ -12,8 +12,17 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   bool _playController = false;
   double _currentSliderValue = 30;
   int _playModeController = 0;
-  IconData _playModeIcon = Icons.repeat_rounded;
+  IconData _playModeIcon = Icons.arrow_forward_ios_rounded;
   final List<String> _modeToolTip = ['Shuffle Mode Is Off', 'Shuffle Mode Is On'];
+  SliderThemeData? _sliderThemeData;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sliderThemeData = SliderTheme.of(
+      context,
+    ).copyWith(activeTrackColor: Colors.white, inactiveTrackColor: Colors.white.withAlpha(77), thumbColor: Colors.white, trackShape: const RoundedRectSliderTrackShape(), trackHeight: 4.0, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10.0, elevation: 0), overlayColor: Colors.white.withAlpha(26), overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0));
+  }
 
   void _changePlayMode() {
     setState(() {
@@ -152,9 +161,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                     child: Column(
                       children: [
                         SliderTheme(
-                          data: SliderTheme.of(
-                            context,
-                          ).copyWith(activeTrackColor: Colors.white, inactiveTrackColor: Colors.white.withAlpha(77), thumbColor: Colors.white, trackShape: const RoundedRectSliderTrackShape(), trackHeight: 4.0, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10.0, elevation: 0), overlayColor: Colors.white.withAlpha(26), overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0)),
+                          data: _sliderThemeData!,
                           child: Slider(
                             value: _currentSliderValue,
                             max: 100,
@@ -188,7 +195,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                       IconButton(onPressed: () {}, icon: const Icon(Icons.equalizer_rounded, size: 28), color: Theme.of(context).colorScheme.onSurfaceVariant),
                       IconButton(onPressed: () {}, icon: const Icon(Icons.skip_previous_rounded, size: 40), color: Theme.of(context).colorScheme.onSurface),
                       IconButton.filled(
-                        style: IconButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primaryContainer, foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer),
+                        style: IconButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primaryContainer, foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer, padding: const EdgeInsets.all(10)),
                         onPressed: () {
                           setState(() {
                             _playController = !_playController;
