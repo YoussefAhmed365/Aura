@@ -66,6 +66,8 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  build_runner: ^2.11.0 # A build system for Dart code generation and modular compilation.
+  injectable_generator: ^2.12.0 # Injectable is a convenient code generator for get_it. Inspired by Angular DI, Guice DI and inject.dart.
 
 # The following section is specific to Flutter packages.
 flutter:
