@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'song_player_screen.dart';
+import '../../features/music_player/presentation/song_player_screen.dart';
 
 class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});
