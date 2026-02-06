@@ -1,4 +1,4 @@
-import 'package:aura/features/presentation/pages/main_wrapper_page.dart';
+import 'package:aura/features/main_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'core/di/injection.dart';

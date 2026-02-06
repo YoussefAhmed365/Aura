@@ -1,10 +1,10 @@
-import 'package:aura/features/presentation/widgets/mini_player.dart';
+import 'package:aura/core/widgets/mini_player.dart';
 import 'package:flutter/material.dart';
-import 'package:aura/features/presentation/pages/home_page.dart';
-import 'package:aura/features/presentation/pages/songs_page.dart';
-import 'package:aura/features/presentation/pages/playlists_page.dart';
-import 'package:aura/features/presentation/pages/search_page.dart';
-import 'package:aura/features/presentation/pages/settings_page.dart';
+import 'package:aura/features/home/presentation/home_page.dart';
+import 'package:aura/features/songs/presentation/songs_page.dart';
+import 'package:aura/features/playlists/presentation/playlists_page.dart';
+import 'package:aura/features/search/presentation/search_page.dart';
+import 'package:aura/features/settings/presentation/settings_page.dart';
 
 class MainWrapperPage extends StatefulWidget {
   const MainWrapperPage({super.key});

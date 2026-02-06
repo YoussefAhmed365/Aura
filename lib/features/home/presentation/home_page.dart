@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aura/features/presentation/widgets/top_bar.dart';
+import 'package:aura/features/home/widgets/top_bar.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class PlaylistModel {
