@@ -18,7 +18,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final _player = AudioPlayer();
 
   // هذا هو الـ Queue (قائمة التشغيل) التي ستحتوي الأغاني
-  final _playlist = ConcatenatingAudioSource(children: []);
+  final _playlist = <AudioSource>[];
 
   MyAudioHandler() {
     _loadEmptyPlaylist();
@@ -29,7 +29,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> _loadEmptyPlaylist() async {
     try {
-      await _player.setAudioSource(_playlist);
+      await _player.setAudioSources(_playlist);
     } catch (e) {
       print("Error: $e");
     }
@@ -43,7 +43,8 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final audioSource = mediaItems.map(_createAudioSource).toList();
 
     // إضافة الأغاني للقائمة الحالية
-    await _playlist.addAll(audioSource);
+    _playlist.addAll(audioSource);
+    await _player.setAudioSources(List.from(_playlist));
 
     // تحديث القائمة في النظام (ليراها الـ Notification)
     final newQueue = queue.value..addAll(mediaItems);
@@ -53,7 +54,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> updateQueue(List<MediaItem> queue) async {
     // هذه الدالة لتحديث القائمة بالكامل (عند تشغيل قائمة جديدة)
-    await _playlist.clear();
+    _playlist.clear();
     this.queue.add([]); // تصفير القائمة القديمة
     await addQueueItems(queue);
   }
