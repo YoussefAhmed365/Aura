@@ -16,8 +16,8 @@ abstract class RegisterModule {
   @singleton
   Future<AudioHandler> get audioHandler async {
     return await AudioService.init(
-      builder: () => MyAudioHandler(AudioPlayer()),
-      config: const AudioServiceConfig(androidNotificationChannelId: 'com.aura.music_player.channel.audio', androidNotificationChannelName: 'Aura Music Player', androidNotificationOngoing: true),
+      builder: () => MyAudioHandler(),
+      config: const AudioServiceConfig(androidNotificationChannelId: 'com.codev.aura.music_player.channel.audio', androidNotificationChannelName: 'Aura Music Player', androidNotificationOngoing: true),
     );
   }
 }

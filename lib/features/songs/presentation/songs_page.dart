@@ -1,6 +1,8 @@
 import 'package:aura/core/di/injection.dart';
 import 'package:aura/features/music_player/domain/repositories/audio_repository.dart';
+import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class SongsPage extends StatefulWidget {
@@ -61,6 +63,11 @@ class _SongsPageState extends State<SongsPage> {
                     subtitle: Text(song.artist ?? "Unknown Artist", style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
                     // Song Cover (ArtWork)
                     leading: QueryArtworkWidget(id: song.id, type: ArtworkType.AUDIO, nullArtworkWidget: const Icon(Icons.music_note)),
+                    onTap: () {
+                      context.read<PlayerBloc>().add(
+                        PlayAllEvent(songs: snapshot.data!, index: index)
+                      );
+                    },
                   );
                 }, childCount: snapshot.data!.length),
               );

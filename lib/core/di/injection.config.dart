@@ -19,6 +19,8 @@ import '../../features/music_player/data/repositories/audio_repository_impl.dart
     as _i398;
 import '../../features/music_player/domain/repositories/audio_repository.dart'
     as _i889;
+import '../../features/music_player/presentation/manager/player_bloc.dart'
+    as _i330;
 import 'register_module.dart' as _i291;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -35,6 +37,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i501.AudioPlayer>(() => registerModule.audioPlayer);
     gh.lazySingleton<_i859.OnAudioQuery>(() => registerModule.onAudioQuery);
+    gh.factory<_i330.PlayerBloc>(
+      () => _i330.PlayerBloc(gh<_i87.AudioHandler>()),
+    );
     gh.lazySingleton<_i889.AudioRepository>(
       () => _i398.AudioRepositoryImpl(gh<_i859.OnAudioQuery>()),
     );
