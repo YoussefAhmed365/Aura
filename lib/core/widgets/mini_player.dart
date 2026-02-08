@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:aura/features/music_player/presentation/song_player_screen.dart';
+import 'package:aura/core/widgets/scroll_text_animation.dart';
 
 class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});
@@ -18,10 +19,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _rotationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    );
+    _rotationController = AnimationController(vsync: this, duration: const Duration(seconds: 10));
   }
 
   @override
@@ -43,8 +41,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return BlocConsumer<PlayerBloc, PlayerState>(
       listenWhen: (previous, current) {
-        return previous.isPlaying != current.isPlaying ||
-            previous.currentSong != current.currentSong;
+        return previous.isPlaying != current.isPlaying || previous.currentSong != current.currentSong;
       },
       listener: (context, state) {
         if (_lastSongId != state.currentSong?.id) {
@@ -61,35 +58,25 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
         }
       },
       buildWhen: (previous, current) {
-        return previous.currentSong != current.currentSong ||
-            previous.isPlaying != current.isPlaying;
+        return previous.currentSong != current.currentSong || previous.isPlaying != current.isPlaying;
       },
       builder: (context, state) {
         final song = state.currentSong;
         final bool hasSong = song != null;
 
         final songId = hasSong ? _getSongId(song.id) : 0;
-        final title = hasSong ? song.title : "Aura Music";
+        final songTitle = hasSong ? song.title : "Aura Music";
         final artist = hasSong ? (song.artist ?? "Unknown") : "Choose a song";
 
         return GestureDetector(
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useRootNavigator: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => const SongPlayerScreen(),
-            );
+            showModalBottomSheet(context: context, isScrollControlled: true, useRootNavigator: true, backgroundColor: Colors.transparent, builder: (context) => const SongPlayerScreen());
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(40),
-                topLeft: Radius.circular(40),
-              ),
+              borderRadius: const BorderRadius.only(topRight: Radius.circular(40), topLeft: Radius.circular(40)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -112,14 +99,8 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                             nullArtworkWidget: Container(
                               width: 50,
                               height: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                              ),
-                              child: Icon(
-                                Icons.music_note,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.surfaceContainerHigh),
+                              child: Icon(Icons.music_note, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ),
                         ),
@@ -132,18 +113,11 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              title,
+                            ScrollingText(
+                              text: songTitle,
                               style: Theme.of(context).textTheme.titleMedium,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                            Text(
-                              artist,
-                              style: Theme.of(context).textTheme.bodySmall,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            Text(artist, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
                           ],
                         ),
                       ),
@@ -154,29 +128,16 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                 // Control Buttons
                 Row(
                   children: [
-                    IconButton(
-                      onPressed: hasSong
-                          ? () => context.read<PlayerBloc>().add(SkipPreviousEvent())
-                          : null,
-                      icon: const Icon(Icons.skip_previous, size: 30),
-                    ),
+                    IconButton(onPressed: hasSong ? () => context.read<PlayerBloc>().add(SkipPreviousEvent()) : null, icon: const Icon(Icons.skip_previous, size: 30)),
                     IconButton(
                       onPressed: hasSong
                           ? () {
-                        context.read<PlayerBloc>().add(PlayPauseEvent());
-                      }
+                              context.read<PlayerBloc>().add(PlayPauseEvent());
+                            }
                           : null,
-                      icon: Icon(
-                        state.isPlaying ? Icons.pause_circle : Icons.play_circle,
-                        size: 35,
-                      ),
+                      icon: Icon(state.isPlaying ? Icons.pause_circle : Icons.play_circle, size: 35),
                     ),
-                    IconButton(
-                      onPressed: hasSong
-                          ? () => context.read<PlayerBloc>().add(SkipNextEvent())
-                          : null,
-                      icon: const Icon(Icons.skip_next, size: 30),
-                    ),
+                    IconButton(onPressed: hasSong ? () => context.read<PlayerBloc>().add(SkipNextEvent()) : null, icon: const Icon(Icons.skip_next, size: 30)),
                   ],
                 ),
               ],
