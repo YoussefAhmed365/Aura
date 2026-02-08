@@ -1,7 +1,7 @@
 # Aura 🎵
 
-> **Your Music, Reimagined in Color.**
-> An offline music player built with Flutter, focusing on Material Design 3 aesthetics, privacy, and a unique dynamic visual experience.
+> **Your Music, Reimagined in Color.**  
+> Aura is a beautiful and privacy-friendly offline music player built with Flutter, bringing immersive dynamic visuals and Material Design 3 aesthetics to your music experience.
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.0%2B-blue.svg)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -11,90 +11,80 @@
 
 ## 📖 Overview
 
-**Aura** is not just another music player; it is an immersive audio experience. Built entirely with Flutter, it leverages the power of **Material Design 3 (Material You)** to adapt its entire interface to your device's theme and the currently playing album art.
+**Aura** reimagines how you interact with your offline music library. Built with Flutter and leveraging **Material Design 3 (Material You)**, Aura dynamically adapts its appearance to your system colors or a signature violet style, ensuring both beauty and clarity.
 
-At its core, Aura features a **Dynamic Visual Engine** that generates fluid, living backgrounds—shifting between radial and linear gradients based on the mood of your music.
+At its core, Aura’s **dynamic visual engine** uses your album artwork to generate animated, mood-matching backgrounds that blend seamlessly with the music and user interface.
+
+---
 
 ## ✨ Key Features
 
 ### 🎨 Visuals & Design
-- **Material You Integration:** The app UI adapts to your system's wallpaper colors (Android 12+) or falls back to a sleek, branded violet theme.
-- **The "Aura" Engine:** A smart background system that extracts vibrant colors from album art and animates between **Radial** (Focus) and **Linear** (Flow) gradients for every song.
-- **Fluid Animations:** Smooth transitions and micro-interactions powered by `flutter_animate`.
-- **Dark & Light Mode:** Fully supported with optimized contrast for both environments.
+- **Material You Adaptive Theming:** UI automatically shifts to match Android 12+ system colors, or uses a modern branded palette.
+- **Aura Visual Engine:** Generates animated radial and linear gradients from album art for each song, creating lively, immersive backgrounds.
+- **Smooth Animations:** Uses `flutter_animate` for fluid page transitions and micro-interactions.
+- **Full Dark/Light Support:** Optimized for contrast and accessibility on any theme.
 
 ### 🎧 Audio Experience
-- **Powerful Equalizer:** Built-in multi-band equalizer with presets (Rock, Jazz, Pop, etc.) and custom bass boost.
-- **Gapless Playback:** Seamless transition between tracks using `just_audio`.
-- **Lyrics Support:**
-    - Embedded Lyrics (ID3 tags).
-    - Synced `.lrc` file support.
+- **Gapless Playback:** Enjoy seamless transitions, powered by `just_audio`.
+- **Lyrics Display:** Support for embedded and synced `.lrc` lyrics.
+- **Equalizer:** Built-in configurable multi-band equalizer and bass boost.
+- **Queue Controls:** Shuffle, repeat, drag-and-drop reordering.
 
-### 📂 Library Management
-- **Smart Local Scan:** Instantly fetches songs, artists, and albums from device storage using `on_audio_query`.
-- **Custom Playlists:** Create, edit, and reorder your favorite mixes.
-- **Search:** Blazing fast search for tracks and artists.
-- **Queue Control:** Shuffle, Repeat One, Repeat All, and drag-to-reorder queue.
-
----
-
-## 📱 Screenshots
-
-| Home Screen | Player (Light) | Player (Dark) | Lyrics View |
-|:-----------:|:--------------:|:-------------:|:-----------:|
-| ![Home](assets/ss_home.png) | ![Player Light](assets/ss_player_light.png) | ![Player Dark](assets/ss_player_dark.png) | ![Lyrics](assets/ss_lyrics.png) |
+### 📂 Library & Playlists
+- **Smart Library Scanning:** Blazing-fast local file scan using `on_audio_query`.
+- **Custom Playlists:** Create, reorder, and edit playlists with drag-and-drop.
+- **Fast Search:** Search across tracks, albums, and artists instantly.
+- **Favorites:** Star and access your top tracks quickly.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🗂️ Project Structure
 
-Aura is built using **Clean Architecture** principles to ensure scalability and testability.
+Aura uses a feature-first, modular structure for scalability:
 
-- **Framework:** [Flutter](https://flutter.dev/)
-- **Language:** Dart
-- **State Management:** [flutter_bloc](https://pub.dev/packages/flutter_bloc)
-- **Audio Engine:** [just_audio](https://pub.dev/packages/just_audio) & [audio_service](https://pub.dev/packages/audio_service) (Background playback).
-- **Local Database:** [hive](https://pub.dev/packages/hive) (For playlists and user preferences).
-- **Theming:** [dynamic_color](https://pub.dev/packages/dynamic_color) & [palette_generator](https://pub.dev/packages/palette_generator).
-- **Dependency Injection:** [get_it](https://pub.dev/packages/get_it) & [injectable](https://pub.dev/packages/injectable).
-
-### Folder Structure
 ```bash
 lib/
-├── core/                   # العناصر الأساسية المشتركة
-│   ├── constants/          # الثوابت (الألوان، النصوص)
-│   ├── theme/              # إعدادات الثيم (Material 3)
-│   ├── services/           # خدمات النظام (AudioHandler, Permissions)
-│   └── utils/              # دوال مساعدة (TimeFormatter, Parsers)
+├── core/                     # Core utilities and global configurations
+│   ├── di/                   # Dependency injection setup
+│   ├── theme/                # Material 3 theming logic
+│   └── widgets/              # Shared/reusable widgets
 │
-├── data/                   # طبقة البيانات (التعامل مع الملفات والداتابيس)
-│   ├── models/             # نماذج البيانات (SongModel, PlaylistModel)
-│   ├── datasources/        # مصادر البيانات (LocalDataSource)
-│   └── repositories/       # تنفيذ المستودعات (AudioRepositoryImpl)
+├── features/                 # All major app features (modular)
+│   ├── home/                 # Home screen & navigation
+│   ├── main_wrapper.dart     # App shell/main navigation
+│   ├── music_player/         # Music playback controls, visualizations
+│   ├── playlists/            # Playlist creation & management
+│   ├── search/               # Search flow for songs, artists, albums
+│   ├── settings/             # User settings and preferences
+│   └── songs/                # Song library, list, and metadata
 │
-├── domain/                 # طبقة القواعد (Business Logic "What to do")
-│   ├── entities/           # الكائنات المجردة (Song, Artist)
-│   ├── repositories/       # واجهات المستودعات (Interfaces)
-│   └── usecases/           # حالات الاستخدام (PlaySong, ScanLibrary, SavePlaylist)
-│
-├── presentation/           # طبقة العرض (UI & State)
-│   ├── bloc/               # إدارة الحالة (PlayerBloc, LibraryBloc, AuraColorBloc)
-│   ├── pages/              # الشاشات (HomeScreen, PlayerScreen, Settings)
-│   └── widgets/            # الأدوات (AuraBackground, SongTile, ProgressBar)
-│
-└── main.dart               # نقطة الانطلاق وحقن التبعيات (DI)
+└── main.dart                 # Entry point of the app and DI init
 ```
+
+**Other top-level directories:**
+- `assets/` - App icons, images, album art, etc.
+- `android/`, `windows/`, `packages/` - Platform and package files.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Flutter (Dart)**
+- **State Management:** flutter_bloc
+- **Audio Engine:** just_audio, audio_service
+- **Database:** hive (playlists, user settings)
+- **Theming:** dynamic_color, palette_generator
+- **DI:** get_it, injectable
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these steps to run Aura on your local machine.
-
 ### Prerequisites
 - Flutter SDK (Latest Stable)
-- Android Studio / VS Code
-- Android Device or Emulator (API 21+)
+- Android Studio or VS Code
+- Android device or emulator (API 21+)
 
 ### Installation
 
@@ -109,7 +99,7 @@ Install dependencies:
 flutter pub get
 ```
 
-Generate code (for Hive & Injectable):
+Generate code (for Hive/Injectable):
 ```bash
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
@@ -123,11 +113,11 @@ flutter run
 
 ## 🗺️ Roadmap
 
-- [x] Core Audio Player Implementation
-- [x] Material Design 3 Theming
-- [x] Local File Scanning
-- [ ] Implementation of "Aura" Dynamic Backgrounds (In Progress)
-- [ ] Equalizer UI & Logic
+- [x] Core Audio Player Functionality
+- [x] Adaptive Material Design 3 Theming
+- [x] Smart File & Library Scanning
+- [ ] Completion of Dynamic Aura Visual Engine (In Progress)
+- [ ] Full Equalizer Feature
 - [ ] Lyrics Parser (.lrc)
 - [ ] Sleep Timer
 - [ ] Tag Editor
@@ -136,24 +126,18 @@ flutter run
 
 ## 🤝 Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+All contributions are highly welcome!
 
-1. Fork the Project
-2. Create your Feature Branch
-   ```bash
-   git checkout -b feature/AmazingFeature
-   ```
-3. Commit your Changes
-   ```bash
-   git commit -m "Add some AmazingFeature"
-   ```
-4. Push to the Branch
-   ```bash
-   git push origin feature/AmazingFeature
-   ```
-5. Open a Pull Request
+1. Fork the repository
+2. Create your feature branch:  
+   `git checkout -b feature/AmazingFeature`
+3. Commit your changes:  
+   `git commit -m "Add AmazingFeature"`
+4. Push to your branch:  
+   `git push origin feature/AmazingFeature`
+5. Open a pull request
 
-Please follow the repository's code style and include tests where appropriate.
+Please maintain code style and add tests when appropriate.
 
 ---
 
@@ -165,6 +149,6 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 ## 📧 Contact
 
-YoussefAhmed365 - your.email@example.com
+**YoussefAhmed365** - your.email@example.com
 
-Project Link: https://github.com/YoussefAhmed365/aura-music-player
+Project Link: [Aura Music Player](https://github.com/YoussefAhmed365/aura-music-player)
