@@ -1,21 +1,76 @@
-import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import '../../features/music_player/presentation/song_player_screen.dart';
+import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
+import 'package:aura/features/music_player/presentation/song_player_screen.dart';
 
-class MiniPlayer extends StatelessWidget {
+class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // نستخدم BlocBuilder للاستماع للتغيرات
-    return BlocBuilder<PlayerBloc, PlayerState>(
-      builder: (context, state) {
-        // إذا لم تكن هناك أغنية مختارة، نخفي المشغل
-        if (state.currentSong == null) return const SizedBox.shrink();
+  State<MiniPlayer> createState() => _MiniPlayerState();
+}
 
-        final song = state.currentSong!;
+class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateMixin {
+  late AnimationController _rotationController;
+  String? _lastSongId;
+
+  @override
+  void initState() {
+    super.initState();
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
+
+  int _getSongId(String songUri) {
+    String idString = songUri.split('/').last;
+    try {
+      return int.parse(idString);
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<PlayerBloc, PlayerState>(
+      listenWhen: (previous, current) {
+        return previous.isPlaying != current.isPlaying ||
+            previous.currentSong != current.currentSong;
+      },
+      listener: (context, state) {
+        if (_lastSongId != state.currentSong?.id) {
+          _rotationController.reset();
+          _lastSongId = state.currentSong?.id;
+        }
+
+        if (state.isPlaying && state.currentSong != null) {
+          if (!_rotationController.isAnimating) {
+            _rotationController.repeat();
+          }
+        } else {
+          _rotationController.stop();
+        }
+      },
+      buildWhen: (previous, current) {
+        return previous.currentSong != current.currentSong ||
+            previous.isPlaying != current.isPlaying;
+      },
+      builder: (context, state) {
+        final song = state.currentSong;
+        final bool hasSong = song != null;
+
+        final songId = hasSong ? _getSongId(song.id) : 0;
+        final title = hasSong ? song.title : "Aura Music";
+        final artist = hasSong ? (song.artist ?? "Unknown") : "Choose a song";
 
         return GestureDetector(
           onTap: () {
@@ -32,48 +87,59 @@ class MiniPlayer extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(40), topLeft: Radius.circular(40)),
+                topRight: Radius.circular(40),
+                topLeft: Radius.circular(40),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded( // Expanded لتجنب الخطأ إذا كان الاسم طويلاً
+                Expanded(
                   child: Row(
                     children: [
-                      // صورة الأغنية
-                      Hero(
-                        tag: 'current_song_image',
-                        child: QueryArtworkWidget(
-                          id: int.parse(song.id), // نحول الـ ID لـ int
-                          type: ArtworkType.AUDIO,
-                          artworkHeight: 50,
-                          artworkWidth: 50,
-                          artworkFit: BoxFit.cover,
-                          nullArtworkWidget: Container(
-                            width: 50, height: 50,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.grey,
+                      // Song Image
+                      RotationTransition(
+                        turns: _rotationController,
+                        child: Hero(
+                          tag: 'current_song_image',
+                          child: QueryArtworkWidget(
+                            id: songId,
+                            type: ArtworkType.AUDIO,
+                            artworkHeight: 50,
+                            artworkWidth: 50,
+                            artworkFit: BoxFit.cover,
+                            keepOldArtwork: true,
+                            nullArtworkWidget: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                              ),
+                              child: Icon(
+                                Icons.music_note,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
                             ),
-                            child: const Icon(Icons.music_note),
                           ),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      // اسم الأغنية
+
+                      // Song Name & Artist
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              song.title,
+                              title,
                               style: Theme.of(context).textTheme.titleMedium,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
-                              song.artist ?? "Unknown",
+                              artist,
                               style: Theme.of(context).textTheme.bodySmall,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -84,26 +150,31 @@ class MiniPlayer extends StatelessWidget {
                     ],
                   ),
                 ),
-                // أزرار التحكم
+
+                // Control Buttons
                 Row(
                   children: [
                     IconButton(
-                      onPressed: () => context.read<PlayerBloc>().add(SkipPreviousEvent()),
+                      onPressed: hasSong
+                          ? () => context.read<PlayerBloc>().add(SkipPreviousEvent())
+                          : null,
                       icon: const Icon(Icons.skip_previous, size: 30),
                     ),
                     IconButton(
-                      onPressed: () {
-                        // إرسال حدث التشغيل/الإيقاف
+                      onPressed: hasSong
+                          ? () {
                         context.read<PlayerBloc>().add(PlayPauseEvent());
-                      },
-                      // تغيير الأيقونة حسب الحالة
+                      }
+                          : null,
                       icon: Icon(
                         state.isPlaying ? Icons.pause_circle : Icons.play_circle,
                         size: 35,
                       ),
                     ),
                     IconButton(
-                      onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()),
+                      onPressed: hasSong
+                          ? () => context.read<PlayerBloc>().add(SkipNextEvent())
+                          : null,
                       icon: const Icon(Icons.skip_next, size: 30),
                     ),
                   ],
