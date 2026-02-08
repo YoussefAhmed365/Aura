@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 class TopBar extends StatelessWidget {
@@ -14,9 +13,9 @@ class TopBar extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [Colors.white.withAlpha(16), Colors.white.withAlpha(5)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            gradient: LinearGradient(colors: [Theme.of(context).colorScheme.surface.withAlpha(16), Theme.of(context).colorScheme.surface.withAlpha(5)], begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withAlpha(30)),
+            border: Border.all(color: Theme.of(context).colorScheme.surface.withAlpha(30)),
           ),
           alignment: Alignment.centerLeft,
           child: Row(
@@ -26,13 +25,13 @@ class TopBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("Aura", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  Text("Good Evening", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white70)),
+                  Text("Good Evening", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.secondary)),
                 ],
               ),
               const Spacer(),
               Container(
-                decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
-                child: IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded), iconSize: 24, color: Colors.white, padding: const EdgeInsets.all(10), constraints: const BoxConstraints()),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.inverseSurface.withAlpha(76), shape: BoxShape.circle),
+                child: IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded), iconSize: 24, color: Theme.of(context).colorScheme.onSurface, padding: const EdgeInsets.all(10), constraints: const BoxConstraints()),
               ),
             ],
           ),

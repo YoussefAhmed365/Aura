@@ -45,15 +45,25 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final Container background;
+
+    if (isDarkMode) {
+      background = Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [const Color(0xFF2E1C4E), Colors.black]),
+        ),
+      );
+    } else {
+      background = Container(color: Colors.white);
+    }
+
     return Scaffold(
       body: Stack(
         children: [
-          // Background Gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
-            ),
-          ),
+          // Background Color
+          background,
 
           // Page Content
           SafeArea(
