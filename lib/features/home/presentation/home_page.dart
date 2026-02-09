@@ -33,11 +33,36 @@ final List<PlaylistModel> playlists = [
 ];
 
 final List<Map<String, dynamic>> favorites = [
-  {"name": "Faded", "author": "Alan Walker", "album": "Alan Walker", "duration": "3:32"},
-  {"name": "Blinding Lights", "author": "The Weeknd", "album": null, "duration": "3:20"},
-  {"name": "Shape of You", "author": "Ed Sheeran", "album": "Ed Sheeran", "duration": "3:53"},
-  {"name": "Someone You Loved", "author": "Lewis Capaldi", "album": "Lewis Capaldi", "duration": "3:02"},
-  {"name": "Dance Monkey", "author": "Tones and I", "album": null, "duration": "3:29"},
+  {
+    "name": "Faded",
+    "author": "Alan Walker",
+    "album": "Alan Walker",
+    "duration": "3:32",
+  },
+  {
+    "name": "Blinding Lights",
+    "author": "The Weeknd",
+    "album": null,
+    "duration": "3:20",
+  },
+  {
+    "name": "Shape of You",
+    "author": "Ed Sheeran",
+    "album": "Ed Sheeran",
+    "duration": "3:53",
+  },
+  {
+    "name": "Someone You Loved",
+    "author": "Lewis Capaldi",
+    "album": "Lewis Capaldi",
+    "duration": "3:02",
+  },
+  {
+    "name": "Dance Monkey",
+    "author": "Tones and I",
+    "album": null,
+    "duration": "3:29",
+  },
 ];
 
 class HomePage extends StatefulWidget {
@@ -62,7 +87,9 @@ class _HomePageState extends State<HomePage> {
       await _audioQuery.permissionsRequest();
     }
 
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -72,9 +99,7 @@ class _HomePageState extends State<HomePage> {
         // Page Content
         CustomScrollView(
           slivers: [
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 140),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 140)),
 
             // Playlists Header
             SliverPadding(
@@ -83,7 +108,12 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Your Mix", style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
+                    Text(
+                      "Your Mix",
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(color: Colors.white),
+                    ),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -110,13 +140,20 @@ class _HomePageState extends State<HomePage> {
                               height: 150,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
-                                image: DecorationImage(image: playlists[index].imageProvider, fit: BoxFit.cover),
+                                image: DecorationImage(
+                                  image: playlists[index].imageProvider,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 10),
                             Text(playlists[index].name),
                             const SizedBox(height: 5),
-                            Text("${playlists[index].songs} Songs", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                            Text(
+                              "${playlists[index].songs} Songs",
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Colors.grey),
+                            ),
                           ],
                         ),
                       );
@@ -126,9 +163,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 30),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 30)),
 
             // Favorites Header
             SliverPadding(
@@ -137,7 +172,12 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Favorites", style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
+                    Text(
+                      "Favorites",
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(color: Colors.white),
+                    ),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -159,44 +199,99 @@ class _HomePageState extends State<HomePage> {
                         leading: Container(
                           width: 50,
                           height: 50,
-                          decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(8)),
-                          child: Icon(Icons.music_note_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.music_note_rounded,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                        title: Text(item['name'] ?? 'Unknown Title', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
+                        title: Text(
+                          item['name'] ?? 'Unknown Title',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(item['author'] ?? 'Unknown Artist', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                            if (item['album'] != null) Text(item['album'] as String, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
+                            Text(
+                              item['author'] ?? 'Unknown Artist',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            if (item['album'] != null)
+                              Text(
+                                item['album'] as String,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant
+                                          .withValues(alpha: 0.7),
+                                    ),
+                              ),
                           ],
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(item['duration'] ?? '--:--', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                            Text(
+                              item['duration'] ?? '--:--',
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
                             const SizedBox(width: 15),
-                            Icon(Icons.more_vert_rounded, color: Theme.of(context).colorScheme.onSurface),
+                            Icon(
+                              Icons.more_vert_rounded,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ],
                         ),
                         onTap: () {},
                       );
                     }
                     // Separator
-                    return const Divider(thickness: 0.15, height: 10, color: Colors.grey);
+                    return const Divider(
+                      thickness: 0.15,
+                      height: 10,
+                      color: Colors.grey,
+                    );
                   },
-                  childCount: favorites.isNotEmpty ? favorites.length * 2 - 1 : 0,
+                  childCount: favorites.isNotEmpty
+                      ? favorites.length * 2 - 1
+                      : 0,
                 ),
               ),
             ),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
 
         // Top Bar
-        const Positioned(top: 20, left: 20, right: 20, height: 100, child: TopBar()),
+        const Positioned(
+          top: 20,
+          left: 20,
+          right: 20,
+          height: 100,
+          child: TopBar(),
+        ),
       ],
     );
   }
