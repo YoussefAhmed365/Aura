@@ -5,6 +5,7 @@ class ScrollingText extends StatefulWidget {
   final TextStyle? style;
   final TextDirection? textDirection;
   final TextAlign? textAlign;
+  final Alignment? alignment;
 
   const ScrollingText({
     super.key,
@@ -12,6 +13,7 @@ class ScrollingText extends StatefulWidget {
     this.style,
     this.textDirection,
     this.textAlign,
+    this.alignment
   });
 
   @override

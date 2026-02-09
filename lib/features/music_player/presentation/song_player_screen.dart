@@ -6,6 +6,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:aura/core/widgets/scroll_text_animation.dart';
+import 'equalizer.dart';
 
 class SongPlayerScreen extends StatefulWidget {
   const SongPlayerScreen({super.key});
@@ -47,16 +48,11 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
     final OnAudioQuery audioQuery = OnAudioQuery();
     try {
       // 1. Get image as Bytes
-      final Uint8List? artworkBytes = await audioQuery.queryArtwork(
-        songId,
-        ArtworkType.AUDIO,
-      );
+      final Uint8List? artworkBytes = await audioQuery.queryArtwork(songId, ArtworkType.AUDIO);
 
       if (artworkBytes != null) {
         // 2. Create PaletteGenerator from image
-        final PaletteGenerator palette = await PaletteGenerator.fromImageProvider(
-          MemoryImage(artworkBytes),
-        );
+        final PaletteGenerator palette = await PaletteGenerator.fromImageProvider(MemoryImage(artworkBytes));
 
         // 3. Choose best color (Dominant, Dark, or Vibrant)
         // We use darkMutedColor first as it suits dark backgrounds, then dominant
@@ -103,14 +99,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   }
 
   void _showSystemToast(String message) {
-    Fluttertoast.showToast(
-        msg: message,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: const Color(0xCC000000),
-        textColor: Colors.white,
-        fontSize: 14.0);
+    Fluttertoast.showToast(msg: message, toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM, timeInSecForIosWeb: 1, backgroundColor: const Color(0xCC000000), textColor: Colors.white, fontSize: 14.0);
   }
 
   // Helper function to format duration (00:00)
@@ -170,10 +159,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 1000), // Smooth transition between colors
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: _bgColors),
+                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _bgColors),
                 ),
               ),
 
@@ -191,12 +177,12 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                           children: [
                             IconButton(
                               onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 35),
+                              icon: Icon(Icons.keyboard_arrow_down_rounded, color: Theme.of(context).colorScheme.onSurface, size: 35),
                             ),
-                            Text("Now Playing", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, letterSpacing: 1.5)),
+                            TextButton(onPressed: () {}, child: Text("Now Playing", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface, letterSpacing: 1.5))),
                             IconButton(
                               onPressed: () {},
-                              icon: const Icon(Icons.more_vert, color: Colors.white),
+                              icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
                             ),
                           ],
                         ),
@@ -224,9 +210,12 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                               artworkFit: BoxFit.cover,
                               keepOldArtwork: true,
                               // --- High Quality Settings ---
-                              quality: 100, // Request highest JPEG quality
-                              artworkQuality: FilterQuality.high, // Better rendering quality
-                              size: 1000, // Request a larger image size (not thumbnail)
+                              quality: 100,
+                              // Request highest JPEG quality
+                              artworkQuality: FilterQuality.high,
+                              // Better rendering quality
+                              size: 1000,
+                              // Request a larger image size (not thumbnail)
                               // -----------------------------
                               nullArtworkWidget: Container(
                                 color: Colors.grey[850],
@@ -247,6 +236,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                             // Song Title
                             ScrollingText(
                               text: songTitle,
+                              alignment: Alignment.center,
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                             ),
 
@@ -269,11 +259,11 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          IconButton(onPressed: () {}, icon: const Icon(Icons.favorite_outline_rounded), color: Colors.white),
-                          IconButton(onPressed: () {}, icon: const Icon(Icons.info_outline_rounded), color: Colors.white),
-                          IconButton(onPressed: () {}, icon: const Icon(Icons.subtitles), color: Colors.white),
-                          IconButton(onPressed: () {}, icon: const Icon(Icons.playlist_add), color: Colors.white),
-                          IconButton(onPressed: () {}, icon: const Icon(Icons.share_rounded), color: Colors.white),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline_rounded), color: Theme.of(context).colorScheme.onSurface),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded), color: Theme.of(context).colorScheme.onSurface),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.subtitles), color: Theme.of(context).colorScheme.onSurface),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.playlist_add), color: Theme.of(context).colorScheme.onSurface),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.share_rounded), color: Theme.of(context).colorScheme.onSurface),
                         ],
                       ),
 
@@ -284,14 +274,15 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                           children: [
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
-                                  activeTrackColor: Colors.white,
-                                  inactiveTrackColor: Colors.white.withAlpha(76),
-                                  thumbColor: Colors.white,
-                                  trackShape: const RoundedRectSliderTrackShape(),
-                                  trackHeight: 4.0,
-                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0, elevation: 0),
-                                  overlayColor: Colors.white.withAlpha(26),
-                                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0)),
+                                activeTrackColor: Theme.of(context).colorScheme.onSurface,
+                                inactiveTrackColor: Theme.of(context).colorScheme.onSurface.withAlpha(76),
+                                thumbColor: Theme.of(context).colorScheme.onSurface,
+                                trackShape: const RoundedRectSliderTrackShape(),
+                                trackHeight: 4.0,
+                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0, elevation: 0),
+                                overlayColor: Theme.of(context).colorScheme.onSurface.withAlpha(26),
+                                overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0),
+                              ),
                               child: Slider(
                                 value: sliderValue,
                                 min: 0.0,
@@ -325,10 +316,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                                     _formatDuration(_isDragging ? Duration(milliseconds: _dragValue.toInt()) : position),
                                     style: const TextStyle(color: Colors.white54, fontSize: 12),
                                   ),
-                                  Text(
-                                    _formatDuration(duration),
-                                    style: const TextStyle(color: Colors.white54, fontSize: 12),
-                                  ),
+                                  Text(_formatDuration(duration), style: const TextStyle(color: Colors.white54, fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -342,18 +330,20 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          IconButton(onPressed: () {}, icon: const Icon(Icons.equalizer_rounded, size: 28), color: Colors.white70),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const EqualizerScreen()));
+                            },
+                            icon: const Icon(Icons.equalizer_rounded, size: 28),
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
 
                           // Skip Previous
-                          IconButton(
-                              onPressed: () => context.read<PlayerBloc>().add(SkipPreviousEvent()),
-                              icon: const Icon(Icons.skip_previous_rounded, size: 40),
-                              color: Colors.white
-                          ),
+                          IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipPreviousEvent()), icon:  Icon(Icons.skip_previous_rounded, size: 40), color: Theme.of(context).colorScheme.onSurface),
 
                           // Play / Pause
                           IconButton.filled(
-                            style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black),
+                            style: IconButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.onSurface, foregroundColor: Theme.of(context).colorScheme.surface),
                             onPressed: () {
                               context.read<PlayerBloc>().add(PlayPauseEvent());
                             },
@@ -362,16 +352,12 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                           ),
 
                           // Skip Next
-                          IconButton(
-                              onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()),
-                              icon: const Icon(Icons.skip_next_rounded, size: 40),
-                              color: Colors.white
-                          ),
+                          IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()), icon:  Icon(Icons.skip_next_rounded, size: 40), color: Theme.of(context).colorScheme.onSurface),
 
                           // Mode Button
                           Tooltip(
                             message: _modeToolTip[_playModeController],
-                            child: IconButton(onPressed: _changePlayMode, icon: Icon(_playModeIcon, size: 28), color: Colors.white70, padding: const EdgeInsets.all(16)),
+                            child: IconButton(onPressed: _changePlayMode, icon: Icon(_playModeIcon, size: 28), color: Theme.of(context).colorScheme.secondary, padding:  EdgeInsets.all(16)),
                           ),
                         ],
                       ),

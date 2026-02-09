@@ -2,7 +2,6 @@ import 'package:aura/core/widgets/mini_player.dart';
 import 'package:flutter/material.dart';
 import 'package:aura/features/home/presentation/home_page.dart';
 import 'package:aura/features/songs/presentation/songs_page.dart';
-import 'package:aura/features/playlists/presentation/playlists_page.dart';
 import 'package:aura/features/search/presentation/search_page.dart';
 import 'package:aura/features/settings/presentation/settings_page.dart';
 
@@ -67,7 +66,7 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
 
           // Page Content
           SafeArea(
-            child: PageView(controller: _pageController, onPageChanged: _onPageChanged, physics: const PageScrollPhysics(), children: const [HomePage(), SongsPage(), PlaylistsPage(), SearchPage(), SettingsPage()]),
+            child: PageView(controller: _pageController, onPageChanged: _onPageChanged, physics: const PageScrollPhysics(), children: const [HomePage(), SongsPage(), SearchPage(), SettingsPage()]),
           ),
 
           // Mini Player
@@ -85,7 +84,8 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
           destinations: const [
             NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
             NavigationDestination(icon: Icon(Icons.music_note_outlined), selectedIcon: Icon(Icons.music_note_rounded), label: 'Songs'),
-            NavigationDestination(icon: Icon(Icons.library_music_outlined), selectedIcon: Icon(Icons.library_music_rounded), label: 'Playlists'),
+            // Removed and moved to Songs page
+            // NavigationDestination(icon: Icon(Icons.library_music_outlined), selectedIcon: Icon(Icons.library_music_rounded), label: 'Playlists'),
             NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search_rounded), label: 'Search'),
             NavigationDestination(icon: Icon(Icons.settings), selectedIcon: Icon(Icons.settings_rounded), label: 'Settings'),
           ],
