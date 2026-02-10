@@ -24,11 +24,13 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
 
   // Playback mode variables (Shuffle/Repeat)
   int _playModeController = 0;
-  IconData _playModeIcon = Icons.repeat_rounded;
+  IconData _playModeIcon = Icons.arrow_forward_ios_rounded;
   final List<String> _modeToolTip = ['Shuffle Mode Is Off', 'Shuffle Mode Is On'];
 
   // Dynamic background variables
-  List<Color> _bgColors = [const Color(0xFF2E1C4E), Colors.black];
+  List<Color> _bgColors = [const Color(0xFFF3E5F5), Colors.white];
+
+  // List<Color> _bgColors = [const Color(0xFF2E1C4E), Colors.black];
   int _currentSongId = 0;
 
   @override
@@ -36,17 +38,18 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
     super.initState();
     // Try loading the color for the current song when opening the screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       final state = context.read<PlayerBloc>().state;
       final songId = _getSongId(state.currentSong?.id);
       if (songId != 0) {
-        _updatePalette(songId);
+        _updatePalette(songId, isDark);
         _currentSongId = songId;
       }
     });
   }
 
   // Function to extract dominant color from song artwork
-  Future<void> _updatePalette(int songId) async {
+  Future<void> _updatePalette(int songId, bool isDarkTheme) async {
     final OnAudioQuery audioQuery = OnAudioQuery();
     try {
       // 1. Get image as Bytes
@@ -56,14 +59,13 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
         // 2. Create PaletteGenerator from image
         final PaletteGenerator palette = await PaletteGenerator.fromImageProvider(MemoryImage(artworkBytes));
 
-        // 3. Choose best color (Dominant, Dark, or Vibrant)
-        // We use darkMutedColor first as it suits dark backgrounds, then dominant
-        final Color? extractedColor = palette.darkMutedColor?.color ?? palette.dominantColor?.color ?? palette.darkVibrantColor?.color;
+        // 3. Choose color based on theme
+        final Color? extractedColor = isDarkTheme ? (palette.darkMutedColor?.color ?? palette.dominantColor?.color ?? palette.darkVibrantColor?.color) : (palette.lightVibrantColor?.color ?? palette.vibrantColor?.color ?? palette.lightMutedColor?.color ?? palette.dominantColor?.color);
 
         if (extractedColor != null) {
           if (mounted) {
             setState(() {
-              _bgColors = [extractedColor, Colors.black];
+              _bgColors = [extractedColor, isDarkTheme ? Colors.black : Colors.white];
             });
           }
           return;
@@ -76,7 +78,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
     // Revert to default color in case of failure or no image
     if (mounted) {
       setState(() {
-        _bgColors = [const Color(0xFF2E1C4E), Colors.black];
+        _bgColors = isDarkTheme ? [const Color(0xFF2E1C4E), Colors.black] : [const Color(0xFFF3E5F5), Colors.white];
       });
     }
   }
@@ -129,254 +131,263 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Dynamic Background Gradient
-        // We use BlocListener here to update background ONLY when song changes
-        BlocListener<PlayerBloc, PlayerState>(
-          listenWhen: (previous, current) => previous.currentSong?.id != current.currentSong?.id,
-          listener: (context, state) {
-            final newId = _getSongId(state.currentSong?.id);
-            if (newId != _currentSongId) {
-              _currentSongId = newId;
-              _updatePalette(newId);
-            }
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 1000), // Smooth transition between colors
-            decoration: BoxDecoration(
-              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _bgColors),
+    // This checks if the current theme is dark
+    final bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
+    final iconColor = isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.inverseSurface;
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // Dynamic Background Gradient
+          // We use BlocListener here to update background ONLY when song changes
+          BlocListener<PlayerBloc, PlayerState>(
+            listenWhen: (previous, current) => previous.currentSong?.id != current.currentSong?.id,
+            listener: (context, state) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final newId = _getSongId(state.currentSong?.id);
+              if (newId != _currentSongId) {
+                _currentSongId = newId;
+                _updatePalette(newId, isDark);
+              }
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 1000), // Smooth transition between colors
+              decoration: BoxDecoration(
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _bgColors),
+              ),
             ),
           ),
-        ),
 
-        // Content
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 30),
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: Icon(Icons.keyboard_arrow_down_rounded, color: Theme.of(context).colorScheme.onSurface, size: 35),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text("Now Playing", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface, letterSpacing: 1.5)),
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                // Album Art - ONLY rebuilds when song ID changes
-                BlocSelector<PlayerBloc, PlayerState, int>(
-                  selector: (state) => _getSongId(state.currentSong?.id),
-                  builder: (context, songId) {
-                    return Hero(
-                      tag: 'current_song_image',
-                      child: Container(
-                        height: MediaQuery.of(context).size.height * 0.43,
-                        width: 320,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: _bgColors[0].withAlpha(102), blurRadius: 30, spreadRadius: 5)],
+          // Content
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 30),
+              child: Column(
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: Icon(Icons.keyboard_arrow_down_rounded, color: Theme.of(context).colorScheme.inverseSurface, size: 35),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: QueryArtworkWidget(
-                            id: songId,
-                            type: ArtworkType.AUDIO,
-                            artworkHeight: MediaQuery.of(context).size.height * 0.43,
-                            artworkWidth: 320,
-                            artworkFit: BoxFit.cover,
-                            keepOldArtwork: true,
-                            quality: 100,
-                            artworkQuality: FilterQuality.high,
-                            size: 1000,
-                            nullArtworkWidget: Container(
-                              color: Colors.grey[850],
-                              child: const Icon(Icons.music_note, size: 80, color: Colors.white),
-                            ),
-                          ),
+                        TextButton(
+                          onPressed: () {},
+                          child: Text("Now Playing", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.inverseSurface, letterSpacing: 1.5)),
                         ),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 50),
-
-                // Song Info - ONLY rebuilds when Title or Artist changes
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: BlocSelector<PlayerBloc, PlayerState, ({String title, String artist})>(
-                    selector: (state) => (title: state.currentSong?.title ?? "No Song Playing", artist: state.currentSong?.artist ?? "Unknown Artist"),
-                    builder: (context, info) {
-                      return Column(
-                        children: [
-                          ScrollingText(
-                            text: info.title,
-                            alignment: Alignment.center,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            info.artist,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white60),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Function Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline_rounded), color: Theme.of(context).colorScheme.onSurface),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded), color: Theme.of(context).colorScheme.onSurface),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.subtitles), color: Theme.of(context).colorScheme.onSurface),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.playlist_add), color: Theme.of(context).colorScheme.onSurface),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.share_rounded), color: Theme.of(context).colorScheme.onSurface),
-                  ],
-                ),
-
-                // Slider & Duration - Rebuilds frequently (optimized)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: BlocBuilder<PlayerBloc, PlayerState>(
-                    buildWhen: (previous, current) => previous.position != current.position || previous.duration != current.duration,
-                    builder: (context, state) {
-                      final duration = state.duration;
-                      final position = state.position;
-
-                      double sliderValue = _isDragging ? _dragValue : position.inMilliseconds.toDouble();
-                      double maxDuration = duration.inMilliseconds.toDouble();
-
-                      if (maxDuration <= 0) maxDuration = 1.0;
-                      if (sliderValue > maxDuration) sliderValue = maxDuration;
-                      if (sliderValue < 0) sliderValue = 0;
-
-                      return Column(
-                        children: [
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: Theme.of(context).colorScheme.onSurface,
-                              inactiveTrackColor: Theme.of(context).colorScheme.onSurface.withAlpha(76),
-                              thumbColor: Theme.of(context).colorScheme.onSurface,
-                              trackShape: const RoundedRectSliderTrackShape(),
-                              trackHeight: 4.0,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0, elevation: 0),
-                              overlayColor: Theme.of(context).colorScheme.onSurface.withAlpha(26),
-                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0),
-                            ),
-                            child: Slider(
-                              value: sliderValue,
-                              min: 0.0,
-                              max: maxDuration,
-                              onChangeStart: (value) {
-                                setState(() {
-                                  _isDragging = true;
-                                  _dragValue = value;
-                                });
-                              },
-                              onChanged: (double value) {
-                                setState(() {
-                                  _dragValue = value;
-                                });
-                              },
-                              onChangeEnd: (value) {
-                                context.read<PlayerBloc>().add(SeekEvent(Duration(milliseconds: value.toInt())));
-                                setState(() {
-                                  _isDragging = false;
-                                });
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _formatDuration(_isDragging ? Duration(milliseconds: _dragValue.toInt()) : position),
-                                  style: const TextStyle(color: Colors.white54, fontSize: 12),
-                                ),
-                                Text(_formatDuration(duration), style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Controls
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const EqualizerScreen()));
-                      },
-                      icon: const Icon(Icons.equalizer_rounded, size: 28),
-                      color: Theme.of(context).colorScheme.secondary,
+                        IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.inverseSurface),
+                        ),
+                      ],
                     ),
+                  ),
 
-                    // Skip Previous
-                    IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipPreviousEvent()), icon: const Icon(Icons.skip_previous_rounded, size: 40), color: Theme.of(context).colorScheme.onSurface),
+                  const SizedBox(height: 40),
 
-                    // Play / Pause - Only rebuilds when isPlaying changes
-                    BlocSelector<PlayerBloc, PlayerState, bool>(
-                      selector: (state) => state.isPlaying,
-                      builder: (context, isPlaying) {
-                        return IconButton.filled(
-                          style: IconButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.onSurface, foregroundColor: Theme.of(context).colorScheme.surface),
-                          onPressed: () {
-                            context.read<PlayerBloc>().add(PlayPauseEvent());
-                          },
-                          iconSize: 40,
-                          icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                  // Album Art - ONLY rebuilds when song ID changes
+                  BlocSelector<PlayerBloc, PlayerState, int>(
+                    selector: (state) => _getSongId(state.currentSong?.id),
+                    builder: (context, songId) {
+                      return Hero(
+                        tag: 'current_song_image',
+                        child: Container(
+                          height: MediaQuery.of(context).size.height * 0.43,
+                          width: 320,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [BoxShadow(color: isDarkTheme ? _bgColors[0].withAlpha(102) : _bgColors[0].withAlpha(51), blurRadius: 30, spreadRadius: 5)],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: QueryArtworkWidget(
+                              id: songId,
+                              type: ArtworkType.AUDIO,
+                              artworkHeight: MediaQuery.of(context).size.height * 0.43,
+                              artworkWidth: 320,
+                              artworkFit: BoxFit.cover,
+                              keepOldArtwork: true,
+                              quality: 100,
+                              artworkQuality: FilterQuality.high,
+                              size: 1000,
+                              nullArtworkWidget: Container(
+                                color: Colors.grey[850],
+                                child: const Icon(Icons.music_note, size: 80, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 50),
+
+                  // Song Info - ONLY rebuilds when Title or Artist changes
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: BlocSelector<PlayerBloc, PlayerState, ({String title, String artist})>(
+                      selector: (state) => (title: state.currentSong?.title ?? "No Song Playing", artist: state.currentSong?.artist ?? "Unknown Artist"),
+                      builder: (context, info) {
+                        return Column(
+                          children: [
+                            ScrollingText(
+                              text: info.title,
+                              alignment: Alignment.center,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              info.artist,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.secondary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         );
                       },
                     ),
+                  ),
 
-                    // Skip Next
-                    IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()), icon: const Icon(Icons.skip_next_rounded, size: 40), color: Theme.of(context).colorScheme.onSurface),
+                  const SizedBox(height: 30),
 
-                    // Mode Button
-                    Tooltip(
-                      message: _modeToolTip[_playModeController],
-                      child: IconButton(onPressed: _changePlayMode, icon: Icon(_playModeIcon, size: 28), color: Theme.of(context).colorScheme.secondary, padding: const EdgeInsets.all(16)),
+                  // Function Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline_rounded), color: iconColor),
+                      IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded), color: iconColor),
+                      IconButton(onPressed: () {}, icon: Icon(Icons.subtitles), color: iconColor),
+                      IconButton(onPressed: () {}, icon: Icon(Icons.playlist_add), color: iconColor),
+                      IconButton(onPressed: () {}, icon: Icon(Icons.share_rounded), color: iconColor),
+                    ],
+                  ),
+
+                  // Slider & Duration - Rebuilds frequently (optimized)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: BlocBuilder<PlayerBloc, PlayerState>(
+                      buildWhen: (previous, current) => previous.position != current.position || previous.duration != current.duration,
+                      builder: (context, state) {
+                        final duration = state.duration;
+                        final position = state.position;
+
+                        double sliderValue = _isDragging ? _dragValue : position.inMilliseconds.toDouble();
+                        double maxDuration = duration.inMilliseconds.toDouble();
+
+                        if (maxDuration <= 0) maxDuration = 1.0;
+                        if (sliderValue > maxDuration) sliderValue = maxDuration;
+                        if (sliderValue < 0) sliderValue = 0;
+
+                        return Column(
+                          children: [
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                activeTrackColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary,
+                                inactiveTrackColor: isDarkTheme ? Theme.of(context).colorScheme.inverseSurface.withAlpha(76) : Theme.of(context).colorScheme.inversePrimary,
+                                thumbColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary,
+                                trackShape: const RoundedRectSliderTrackShape(),
+                                trackHeight: 4.0,
+                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0, elevation: 0),
+                                overlayColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface.withAlpha(26) : Theme.of(context).colorScheme.primary,
+                                overlayShape: const RoundSliderOverlayShape(overlayRadius: 10.0),
+                              ),
+                              child: Slider(
+                                value: sliderValue,
+                                min: 0.0,
+                                max: maxDuration,
+                                onChangeStart: (value) {
+                                  setState(() {
+                                    _isDragging = true;
+                                    _dragValue = value;
+                                  });
+                                },
+                                onChanged: (double value) {
+                                  setState(() {
+                                    _dragValue = value;
+                                  });
+                                },
+                                onChangeEnd: (value) {
+                                  context.read<PlayerBloc>().add(SeekEvent(Duration(milliseconds: value.toInt())));
+                                  setState(() {
+                                    _isDragging = false;
+                                  });
+                                },
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _formatDuration(_isDragging ? Duration(milliseconds: _dragValue.toInt()) : position),
+                                    style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 12),
+                                  ),
+                                  Text(_formatDuration(duration), style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                  ],
-                ),
-              ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Controls
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const EqualizerScreen()));
+                        },
+                        icon: const Icon(Icons.equalizer_rounded, size: 28),
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+
+                      // Skip Previous
+                      IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipPreviousEvent()), icon: const Icon(Icons.skip_previous_rounded, size: 40), color: iconColor),
+
+                      // Play / Pause - Only rebuilds when isPlaying changes
+                      BlocSelector<PlayerBloc, PlayerState, bool>(
+                        selector: (state) => state.isPlaying,
+                        builder: (context, isPlaying) {
+                          return IconButton.filled(
+                            style: IconButton.styleFrom(backgroundColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary, foregroundColor: isDarkTheme ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.onPrimary),
+                            onPressed: () {
+                              context.read<PlayerBloc>().add(PlayPauseEvent());
+                            },
+                            iconSize: 40,
+                            icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                          );
+                        },
+                      ),
+
+                      // Skip Next
+                      IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()), icon: const Icon(Icons.skip_next_rounded, size: 40), color: iconColor),
+
+                      // Mode Button
+                      Tooltip(
+                        message: _modeToolTip[_playModeController],
+                        child: IconButton(onPressed: _changePlayMode, icon: Icon(_playModeIcon, size: 28), color: Theme.of(context).colorScheme.secondary, padding: const EdgeInsets.all(16)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
