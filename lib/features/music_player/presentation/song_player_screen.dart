@@ -231,8 +231,8 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                   // Song Info - ONLY rebuilds when Title or Artist changes
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: BlocSelector<PlayerBloc, PlayerState, ({String title, String artist})>(
-                      selector: (state) => (title: state.currentSong?.title ?? "No Song Playing", artist: state.currentSong?.artist ?? "Unknown Artist"),
+                    child: BlocSelector<PlayerBloc, PlayerState, ({String title, String album, String artist})>(
+                      selector: (state) => (title: state.currentSong?.title ?? "No Song Playing", album: state.currentSong?.album ?? "Unknown Album", artist: state.currentSong?.artist ?? "Unknown Artist"),
                       builder: (context, info) {
                         return Column(
                           children: [
@@ -241,11 +241,17 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                               alignment: Alignment.center,
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 3),
                             Text(
+                              info.album,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),Text(
                               info.artist,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.secondary),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),

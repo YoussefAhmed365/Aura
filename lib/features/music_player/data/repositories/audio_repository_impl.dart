@@ -25,4 +25,27 @@ class AudioRepositoryImpl implements AudioRepository {
   Future<List<AlbumModel>> getAlbums() async {
     return await _audioQuery.queryAlbums();
   }
+
+  @override
+  Future<List<ArtistModel>> getArtists() async {
+    return await _audioQuery.queryArtists();
+  }
+
+  @override
+  Future<List<SongModel>> getSongsByAlbum(int albumId) async {
+    return await _audioQuery.queryAudiosFrom(
+      AudiosFromType.ALBUM_ID,
+      albumId,
+      sortType: SongSortType.TITLE,
+    );
+  }
+
+  @override
+  Future<List<SongModel>> getSongsByArtist(int artistId) async {
+    return await _audioQuery.queryAudiosFrom(
+      AudiosFromType.ARTIST_ID,
+      artistId,
+      sortType: SongSortType.TITLE,
+    );
+  }
 }

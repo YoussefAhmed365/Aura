@@ -57,8 +57,8 @@ class _SongsPageState extends State<SongsPage> {
                     dividerColor: Colors.transparent,
                     tabs: const [
                       Tab(text: "Songs"),
+                      Tab(text: "Albums"),
                       Tab(text: "Artists"),
-                      Tab(text: "Album"),
                       Tab(text: "Playlist"),
                     ],
                     onTap: (index) {},
@@ -71,8 +71,8 @@ class _SongsPageState extends State<SongsPage> {
         body: TabBarView(
           children: [
             const CustomScrollView(key: PageStorageKey<String>('songs'), slivers: [Songs()]),
-            const CustomScrollView(key: PageStorageKey<String>('artists'), slivers: [Artists()]),
             const CustomScrollView(key: PageStorageKey<String>('albums'), slivers: [Albums()]),
+            const CustomScrollView(key: PageStorageKey<String>('artists'), slivers: [Artists()]),
             const CustomScrollView(key: PageStorageKey<String>('playlists'), slivers: [Playlists()]),
           ],
         ),

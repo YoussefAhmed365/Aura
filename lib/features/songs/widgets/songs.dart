@@ -53,6 +53,8 @@ class _SongsState extends State<Songs> {
                   onTap: () {
                     context.read<PlayerBloc>().add(PlayAllEvent(songs: snapshot.data!, index: index));
                   },
+                  splashColor: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(10),
                   child: Row(
                     children: [
                       // Rounded Artwork
