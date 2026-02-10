@@ -8,10 +8,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: _seedColor,
-        brightness: Brightness.light,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: _seedColor, brightness: Brightness.light),
       textTheme: GoogleFonts.outfitTextTheme(),
     );
   }
@@ -19,10 +16,7 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: _seedColor,
-        brightness: Brightness.dark,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: _seedColor, brightness: Brightness.dark),
       scaffoldBackgroundColor: const Color(0xFF000000),
       textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
     );

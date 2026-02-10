@@ -39,6 +39,7 @@ class SkipPreviousEvent extends PlayerEvent {}
 // Internal events for AudioHandler updates
 class _MediaItemUpdated extends PlayerEvent {
   final MediaItem mediaItem;
+
   const _MediaItemUpdated(this.mediaItem);
 
   @override
@@ -48,6 +49,7 @@ class _MediaItemUpdated extends PlayerEvent {
 class _PlaybackStateUpdated extends PlayerEvent {
   final bool isPlaying;
   final bool isBuffering;
+
   const _PlaybackStateUpdated({required this.isPlaying, required this.isBuffering});
 
   @override
@@ -56,6 +58,7 @@ class _PlaybackStateUpdated extends PlayerEvent {
 
 class _PositionUpdated extends PlayerEvent {
   final Duration position;
+
   const _PositionUpdated(this.position);
 
   @override

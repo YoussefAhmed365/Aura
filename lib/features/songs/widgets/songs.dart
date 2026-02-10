@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:aura/core/di/injection.dart';
 import 'package:aura/features/music_player/domain/repositories/audio_repository.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -30,26 +30,17 @@ class _SongsState extends State<Songs> {
         builder: (context, snapshot) {
           // Loading
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: CircularProgressIndicator()),
-            );
+            return const SliverFillRemaining(hasScrollBody: false, child: Center(child: CircularProgressIndicator()));
           }
 
           // Error
           if (snapshot.hasError) {
-            return SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: Text("Error: ${snapshot.error}")),
-            );
+            return SliverFillRemaining(hasScrollBody: false, child: Center(child: Text("Error: ${snapshot.error}")));
           }
 
           // Empty
           if (snapshot.data == null || snapshot.data!.isEmpty) {
-            return const SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: Text("No songs found!")),
-            );
+            return const SliverFillRemaining(hasScrollBody: false, child: Center(child: Text("No songs found!")));
           }
 
           // List Items
@@ -57,15 +48,10 @@ class _SongsState extends State<Songs> {
             delegate: SliverChildBuilderDelegate((context, index) {
               SongModel song = snapshot.data![index];
               return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: InkWell(
                   onTap: () {
-                    context.read<PlayerBloc>().add(
-                      PlayAllEvent(songs: snapshot.data!, index: index),
-                    );
+                    context.read<PlayerBloc>().add(PlayAllEvent(songs: snapshot.data!, index: index));
                   },
                   child: Row(
                     children: [
@@ -81,14 +67,8 @@ class _SongsState extends State<Songs> {
                           nullArtworkWidget: Container(
                             width: 60,
                             height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withAlpha(26),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: const Icon(
-                              Icons.music_note,
-                              color: Colors.grey,
-                            ),
+                            decoration: BoxDecoration(color: Colors.grey.withAlpha(26), borderRadius: BorderRadius.circular(15)),
+                            child: const Icon(Icons.music_note, color: Colors.grey),
                           ),
                         ),
                       ),
@@ -101,19 +81,14 @@ class _SongsState extends State<Songs> {
                           children: [
                             Text(
                               song.title,
-                              style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               "${song.artist ?? "Unknown"} • ${song.album ?? "Unknown"}",
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: Colors.grey, fontSize: 12),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 12),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),

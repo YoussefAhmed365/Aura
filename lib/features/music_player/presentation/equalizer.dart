@@ -5,8 +5,6 @@ class EqualizerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Text("Equalizer")
-    );
+    return Scaffold(body: Text("Equalizer"));
   }
 }

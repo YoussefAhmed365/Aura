@@ -7,14 +7,7 @@ class ScrollingText extends StatefulWidget {
   final TextAlign? textAlign;
   final Alignment? alignment;
 
-  const ScrollingText({
-    super.key,
-    required this.text,
-    this.style,
-    this.textDirection,
-    this.textAlign,
-    this.alignment
-  });
+  const ScrollingText({super.key, required this.text, this.style, this.textDirection, this.textAlign, this.alignment});
 
   @override
   State<ScrollingText> createState() => _ScrollingTextState();
@@ -60,10 +53,7 @@ class _ScrollingTextState extends State<ScrollingText> with SingleTickerProvider
       setState(() => _needsScrolling = true);
 
       // Setup ease-in-out animation that reverses (Infinity loop)
-      final CurvedAnimation curvedAnimation = CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      );
+      final CurvedAnimation curvedAnimation = CurvedAnimation(parent: _animationController, curve: Curves.easeInOut);
 
       _animation = Tween<double>(begin: 0.0, end: maxScroll).animate(curvedAnimation);
 
@@ -100,39 +90,29 @@ class _ScrollingTextState extends State<ScrollingText> with SingleTickerProvider
   Widget build(BuildContext context) {
     // Determine resolved text direction: explicit prop wins, otherwise auto-detect
     final TextDirection resolvedDirection = widget.textDirection ?? (_isArabic(widget.text) ? TextDirection.rtl : TextDirection.ltr);
-    Widget resolvedAlign = _isArabic(widget.text) ?
-    Align(
-      alignment: Alignment.centerRight,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        child: Text(
-          widget.text,
-          style: widget.style,
-          textAlign: TextAlign.center,
-        ),
-      ),
-    ) : Align(
-      alignment: Alignment.centerLeft,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        child: Text(
-          widget.text,
-          style: widget.style,
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
+    Widget resolvedAlign = _isArabic(widget.text)
+        ? Align(
+            alignment: Alignment.centerRight,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              child: Text(widget.text, style: widget.style, textAlign: TextAlign.center),
+            ),
+          )
+        : Align(
+            alignment: Alignment.centerLeft,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              child: Text(widget.text, style: widget.style, textAlign: TextAlign.center),
+            ),
+          );
 
     return SizedBox(
       height: 40, // Height constraint to prevent layout shifts
-      child: Directionality(
-        textDirection: resolvedDirection,
-        child: resolvedAlign,
-      ),
+      child: Directionality(textDirection: resolvedDirection, child: resolvedAlign),
     );
   }
 }

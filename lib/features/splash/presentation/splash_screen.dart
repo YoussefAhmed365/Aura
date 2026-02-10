@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/core/di/injection.dart';
+import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/main.dart';
+import 'package:flutter/material.dart';
 
 class AppStart extends StatefulWidget {
   const AppStart({super.key});
@@ -63,22 +63,19 @@ class _AppStartState extends State<AppStart> {
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.dark,
         home: Scaffold(
-            body: Stack(
-              children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
-                  ),
+          body: Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
                 ),
+              ),
 
-                // Page Content
-                const SafeArea(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-              ],
-            )),
+              // Page Content
+              const SafeArea(child: Center(child: CircularProgressIndicator())),
+            ],
+          ),
+        ),
       );
     }
 

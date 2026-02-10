@@ -1,9 +1,9 @@
+import 'package:aura/core/widgets/scroll_text_animation.dart';
+import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
+import 'package:aura/features/music_player/presentation/song_player_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
-import 'package:aura/features/music_player/presentation/song_player_screen.dart';
-import 'package:aura/core/widgets/scroll_text_animation.dart';
 
 class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});
@@ -113,10 +113,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            ScrollingText(
-                              text: songTitle,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
+                            ScrollingText(text: songTitle, style: Theme.of(context).textTheme.titleMedium),
                             Text(artist, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
                           ],
                         ),

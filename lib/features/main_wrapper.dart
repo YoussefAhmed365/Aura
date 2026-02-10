@@ -1,9 +1,9 @@
 import 'package:aura/core/widgets/mini_player.dart';
-import 'package:flutter/material.dart';
 import 'package:aura/features/home/presentation/home_page.dart';
-import 'package:aura/features/songs/presentation/songs_page.dart';
 import 'package:aura/features/search/presentation/search_page.dart';
 import 'package:aura/features/settings/presentation/settings_page.dart';
+import 'package:aura/features/songs/presentation/songs_page.dart';
+import 'package:flutter/material.dart';
 
 class MainWrapperPage extends StatefulWidget {
   const MainWrapperPage({super.key});

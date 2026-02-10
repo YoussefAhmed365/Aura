@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:aura/features/songs/widgets/albums.dart';
 import 'package:aura/features/songs/widgets/artists.dart';
 import 'package:aura/features/songs/widgets/playlists.dart';
 import 'package:aura/features/songs/widgets/songs.dart';
+import 'package:flutter/material.dart';
 
 class SongsPage extends StatefulWidget {
   const SongsPage({super.key});
@@ -14,7 +14,7 @@ class SongsPage extends StatefulWidget {
 class _SongsPageState extends State<SongsPage> {
   @override
   Widget build(BuildContext context) {
-  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return DefaultTabController(
       length: 4,

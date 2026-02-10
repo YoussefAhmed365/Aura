@@ -1,12 +1,12 @@
 import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 part 'player_event.dart';
-
 part 'player_state.dart';
 
 @injectable
@@ -101,9 +101,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     _playerStateSubscription = _audioHandler.playbackState.listen((playbackState) {
       final isPlaying = playbackState.playing;
       final processingState = playbackState.processingState;
-      
+
       final isBuffering = processingState == AudioProcessingState.buffering || processingState == AudioProcessingState.loading;
-      
+
       add(_PlaybackStateUpdated(isPlaying: isPlaying, isBuffering: isBuffering));
     });
 
