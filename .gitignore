@@ -44,3 +44,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /assets/images/ColorSchemes.png
+/dart build runner.txt
