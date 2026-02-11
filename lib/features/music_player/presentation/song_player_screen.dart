@@ -30,7 +30,19 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   // Dynamic background variables
   List<Color> _bgColors = [const Color(0xFFF3E5F5), Colors.white];
 
-  // List<Color> _bgColors = [const Color(0xFF2E1C4E), Colors.black];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // التحقق من الوضع الحالي (فاتح أم مظلم)
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // إذا كنا في الوضع المظلم، وكانت الألوان لا تزال هي الافتراضية الفاتحة، نقوم بتغييرها فوراً للداكن
+    if (isDark && _bgColors[0] == const Color(0xFFF3E5F5)) {
+      _bgColors = [const Color(0xFF2E1C4E), Colors.black];
+    }
+  }
+
   int _currentSongId = 0;
 
   @override
@@ -194,30 +206,35 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                   BlocSelector<PlayerBloc, PlayerState, int>(
                     selector: (state) => _getSongId(state.currentSong?.id),
                     builder: (context, songId) {
-                      return Hero(
-                        tag: 'current_song_image',
-                        child: Container(
-                          height: MediaQuery.of(context).size.height * 0.43,
-                          width: 320,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [BoxShadow(color: isDarkTheme ? _bgColors[0].withAlpha(102) : _bgColors[0].withAlpha(51), blurRadius: 30, spreadRadius: 5)],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: QueryArtworkWidget(
-                              id: songId,
-                              type: ArtworkType.AUDIO,
-                              artworkHeight: MediaQuery.of(context).size.height * 0.43,
-                              artworkWidth: 320,
-                              artworkFit: BoxFit.cover,
-                              keepOldArtwork: true,
-                              quality: 100,
-                              artworkQuality: FilterQuality.high,
-                              size: 1000,
-                              nullArtworkWidget: Container(
-                                color: Colors.grey[850],
-                                child: const Icon(Icons.music_note, size: 80, color: Colors.white),
+                      return Container(
+                        height: MediaQuery.of(context).size.height * 0.43,
+                        width: 320,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [BoxShadow(color: isDarkTheme ? _bgColors[0].withAlpha(102) : _bgColors[0].withAlpha(51), blurRadius: 30, spreadRadius: 5)],
+                        ),
+                        child: Hero(
+                          tag: 'current_song_image',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: QueryArtworkWidget(
+                                id: songId,
+                                type: ArtworkType.AUDIO,
+                                artworkHeight: MediaQuery.of(context).size.height * 0.43,
+                                artworkWidth: 320,
+                                artworkFit: BoxFit.cover,
+                                keepOldArtwork: true,
+                                quality: 100,
+                                artworkQuality: FilterQuality.high,
+                                size: 1000,
+                                nullArtworkWidget: Container(
+                                  height: MediaQuery.of(context).size.height * 0.43,
+                                  width: 320,
+                                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                                  child: Icon(Icons.music_note, size: 80, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                ),
                               ),
                             ),
                           ),
@@ -238,7 +255,6 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                           children: [
                             ScrollingText(
                               text: info.title,
-                              alignment: Alignment.center,
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 3),

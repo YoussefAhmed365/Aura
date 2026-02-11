@@ -89,18 +89,24 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                         turns: _rotationController,
                         child: Hero(
                           tag: 'current_song_image',
-                          child: QueryArtworkWidget(
-                            id: songId,
-                            type: ArtworkType.AUDIO,
-                            artworkHeight: 50,
-                            artworkWidth: 50,
-                            artworkFit: BoxFit.cover,
-                            keepOldArtwork: true,
-                            nullArtworkWidget: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.surfaceContainerHigh),
-                              child: Icon(Icons.music_note, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(0),
+                              child: QueryArtworkWidget(
+                                id: songId,
+                                type: ArtworkType.AUDIO,
+                                artworkHeight: 50,
+                                artworkWidth: 50,
+                                artworkFit: BoxFit.cover,
+                                keepOldArtwork: true,
+                                nullArtworkWidget: Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.surfaceContainerHigh),
+                                  child: Icon(Icons.music_note, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -113,7 +119,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            ScrollingText(text: songTitle, style: Theme.of(context).textTheme.titleMedium),
+                            ScrollingText(text: songTitle, isMiniPlayer: true, style: Theme.of(context).textTheme.titleMedium),
                             Text(artist, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
                           ],
                         ),

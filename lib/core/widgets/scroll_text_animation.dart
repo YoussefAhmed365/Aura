@@ -5,9 +5,9 @@ class ScrollingText extends StatefulWidget {
   final TextStyle? style;
   final TextDirection? textDirection;
   final TextAlign? textAlign;
-  final Alignment? alignment;
+  final bool isMiniPlayer;
 
-  const ScrollingText({super.key, required this.text, this.style, this.textDirection, this.textAlign, this.alignment});
+  const ScrollingText({super.key, required this.text, this.style, this.textDirection, this.textAlign, this.isMiniPlayer = false});
 
   @override
   State<ScrollingText> createState() => _ScrollingTextState();
@@ -92,7 +92,7 @@ class _ScrollingTextState extends State<ScrollingText> with SingleTickerProvider
     final TextDirection resolvedDirection = widget.textDirection ?? (_isArabic(widget.text) ? TextDirection.rtl : TextDirection.ltr);
     Widget resolvedAlign = _isArabic(widget.text)
         ? Align(
-            alignment: Alignment.centerRight,
+            alignment: widget.isMiniPlayer ? Alignment.centerLeft : (_needsScrolling ? Alignment.centerRight : Alignment.center),
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
@@ -101,7 +101,7 @@ class _ScrollingTextState extends State<ScrollingText> with SingleTickerProvider
             ),
           )
         : Align(
-            alignment: Alignment.centerLeft,
+            alignment: widget.isMiniPlayer ? Alignment.centerLeft : (_needsScrolling ? Alignment.centerLeft : Alignment.center),
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
