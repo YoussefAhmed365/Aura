@@ -37,6 +37,33 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
     }
   }
 
+  void _showPlayer(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const SongPlayerScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // Defines the start (bottom of screen) and end (top of screen)
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+
+          // Use a smooth curve like easeInOutCubic or fastOutSlowIn
+          const curve = Curves.easeInOutCubic;
+
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+        // Optional: adjust the duration of the transition
+        transitionDuration: const Duration(milliseconds: 500),
+        reverseTransitionDuration: const Duration(milliseconds: 400),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PlayerBloc, PlayerState>(
@@ -70,7 +97,12 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
 
         return GestureDetector(
           onTap: () {
-            showModalBottomSheet(context: context, isScrollControlled: true, useRootNavigator: true, backgroundColor: Colors.transparent, builder: (context) => const SongPlayerScreen());
+            _showPlayer(context);
+          },
+          onVerticalDragEnd: (details) {
+            if (details.primaryVelocity! < -300) {
+              _showPlayer(context);
+            }
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),

@@ -21,6 +21,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   // Variables to control slider dragging behavior to prevent stuttering
   bool _isDragging = false;
   double _dragValue = 0.0;
+  bool _showRemaining = false;
 
   // Playback mode variables (Shuffle/Repeat)
   int _playModeController = 0;
@@ -200,50 +201,78 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
 
-                  // Album Art - ONLY rebuilds when song ID changes
-                  BlocSelector<PlayerBloc, PlayerState, int>(
-                    selector: (state) => _getSongId(state.currentSong?.id),
-                    builder: (context, songId) {
-                      return Container(
+                  // Album Art - Carousel Implementation
+                  // نستخدم BlocBuilder بدلاً من Selector هنا لأننا نحتاج الوصول للقائمة (Queue) والترتيب
+                  BlocBuilder<PlayerBloc, PlayerState>(
+                    buildWhen: (previous, current) => previous.currentSong?.id != current.currentSong?.id || previous.isPlaying != current.isPlaying,
+                    builder: (context, state) {
+                      // التحقق من وجود أغاني
+                      if (state.currentSong == null) return const SizedBox();
+
+                      final currentIndex = state.currentIndex; // تأكد أن state يحتوي على currentIndex
+                      final queue = state.queue; // تأكد أن state يحتوي على قائمة التشغيل (queue)
+
+                      // حساب الأغنية السابقة والتالية (مع مراعاة الدوران Loop)
+                      // ملاحظة: افترضنا وجود متغيرات currentIndex و queue داخل الـ State
+                      // إذا لم تكن موجودة، يجب إضافتها أو استخدام المنطق الخاص بك لجلب الاغنية السابقة والتالية
+                      final prevSong = queue.isNotEmpty ? queue[currentIndex > 0 ? currentIndex - 1 : queue.length - 1] : null;
+                      final nextSong = queue.isNotEmpty ? queue[currentIndex < queue.length - 1 ? currentIndex + 1 : 0] : null;
+
+                      final currentId = _getSongId(state.currentSong?.id);
+                      final prevId = _getSongId(prevSong?.id);
+                      final nextId = _getSongId(nextSong?.id);
+
+                      // نستخدم ValueKey لإجبار الـ PageView على إعادة البناء عند تغير الأغنية
+                      // هذا يعيدنا للصفحة رقم 1 (المنتصف) تلقائياً عند تشغيل أغنية جديدة
+                      return SizedBox(
                         height: MediaQuery.of(context).size.height * 0.43,
-                        width: 320,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: isDarkTheme ? _bgColors[0].withAlpha(102) : _bgColors[0].withAlpha(51), blurRadius: 30, spreadRadius: 5)],
-                        ),
-                        child: Hero(
-                          tag: 'current_song_image',
-                          child: Material(
-                            color: Colors.transparent,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
-                              child: QueryArtworkWidget(
-                                id: songId,
-                                type: ArtworkType.AUDIO,
-                                artworkHeight: MediaQuery.of(context).size.height * 0.43,
-                                artworkWidth: 320,
-                                artworkFit: BoxFit.cover,
-                                keepOldArtwork: true,
-                                quality: 100,
-                                artworkQuality: FilterQuality.high,
-                                size: 1000,
-                                nullArtworkWidget: Container(
-                                  height: MediaQuery.of(context).size.height * 0.43,
-                                  width: 320,
-                                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                                  child: Icon(Icons.music_note, size: 80, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                ),
+                        child: PageView.builder(
+                          key: ValueKey(currentId),
+                          // خدعة مهمة جداً: عند تغير الأغنية، يعاد بناء الـ PageView من الصفر
+                          controller: PageController(viewportFraction: 0.85, initialPage: 1),
+                          // نبدأ دائماً من الصفحة 1 (المنتصف)
+                          itemCount: 3,
+                          // ثلاث صفحات فقط: سابقة، حالية، تالية
+                          onPageChanged: (index) {
+                            if (index == 0) {
+                              // السحب لليمين (للخلف) -> تشغيل السابق
+                              context.read<PlayerBloc>().add(SkipPreviousEvent());
+                            } else if (index == 2) {
+                              // السحب لليسار (للأمام) -> تشغيل التالي
+                              context.read<PlayerBloc>().add(SkipNextEvent());
+                            }
+                          },
+                          itemBuilder: (context, index) {
+                            // تحديد أي أغنية نعرض بناءً على الـ Index
+                            int displayId = 0;
+                            bool isCurrent = false;
+
+                            if (index == 0) displayId = prevId; // الصفحة اليسرى (السابقة)
+                            if (index == 1) {
+                              displayId = currentId; // الصفحة الوسطى (الحالية)
+                              isCurrent = true;
+                            }
+                            if (index == 2) displayId = nextId; // الصفحة اليمنى (التالية)
+
+                            // إضافة Animation للصورة الحالية (تصغير وتكبير عند التشغيل)
+                            return AnimatedScale(
+                              scale: (isCurrent && state.isPlaying) ? 1.0 : 0.9, // الصورة الجانبية تكون أصغر قليلاً
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              child: GestureDetector(
+                                onTap: isCurrent ? () => context.read<PlayerBloc>().add(PlayPauseEvent()) : null,
+                                child: _buildArtworkWidget(context, displayId, MediaQuery.of(context).size.height * 0.43, 320, isCurrent: isCurrent),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       );
                     },
                   ),
 
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
 
                   // Song Info - ONLY rebuilds when Title or Artist changes
                   Padding(
@@ -253,23 +282,33 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                       builder: (context, info) {
                         return Column(
                           children: [
-                            ScrollingText(
-                              text: info.title,
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                            SizedBox(
+                              height: 40,
+                              child: ScrollingText(
+                                text: info.title,
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                              ),
                             ),
                             const SizedBox(height: 3),
-                            Text(
-                              info.album,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),Text(
-                              info.artist,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            SizedBox(
+                              height: 25,
+                              child: Text(
+                                info.album,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 25,
+                              child: Text(
+                                info.artist,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         );
@@ -277,35 +316,43 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
 
                   // Function Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline_rounded), color: iconColor),
-                      IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded), color: iconColor),
-                      IconButton(onPressed: () {}, icon: Icon(Icons.subtitles), color: iconColor),
-                      IconButton(onPressed: () {}, icon: Icon(Icons.playlist_add), color: iconColor),
-                      IconButton(onPressed: () {}, icon: Icon(Icons.share_rounded), color: iconColor),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline_rounded, size: 25), color: iconColor),
+                        IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded, size: 25), color: iconColor),
+                        IconButton(onPressed: () {}, icon: Icon(Icons.subtitles, size: 25), color: iconColor),
+                        IconButton(onPressed: () {}, icon: Icon(Icons.playlist_add, size: 25), color: iconColor),
+                        IconButton(onPressed: () {}, icon: Icon(Icons.share_rounded, size: 25), color: iconColor),
+                      ],
+                    ),
                   ),
 
                   // Slider & Duration - Rebuilds frequently (optimized)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: BlocBuilder<PlayerBloc, PlayerState>(
                       buildWhen: (previous, current) => previous.position != current.position || previous.duration != current.duration,
                       builder: (context, state) {
                         final duration = state.duration;
                         final position = state.position;
 
+                        // 1. Calculate effective values (considering drag state)
                         double sliderValue = _isDragging ? _dragValue : position.inMilliseconds.toDouble();
                         double maxDuration = duration.inMilliseconds.toDouble();
 
+                        // Ensure slider doesn't crash on edge cases
                         if (maxDuration <= 0) maxDuration = 1.0;
-                        if (sliderValue > maxDuration) sliderValue = maxDuration;
-                        if (sliderValue < 0) sliderValue = 0;
+                        sliderValue = sliderValue.clamp(0.0, maxDuration);
+
+                        // 2. Calculate what to show on the left label
+                        final Duration currentDisplayTime = Duration(milliseconds: sliderValue.toInt());
+                        final Duration remainingTime = duration - currentDisplayTime;
 
                         return Column(
                           children: [
@@ -314,45 +361,46 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                                 activeTrackColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary,
                                 inactiveTrackColor: isDarkTheme ? Theme.of(context).colorScheme.inverseSurface.withAlpha(76) : Theme.of(context).colorScheme.inversePrimary,
                                 thumbColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary,
-                                trackShape: const RoundedRectSliderTrackShape(),
                                 trackHeight: 4.0,
                                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0, elevation: 0),
-                                overlayColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface.withAlpha(26) : Theme.of(context).colorScheme.primary,
-                                overlayShape: const RoundSliderOverlayShape(overlayRadius: 10.0),
                               ),
                               child: Slider(
                                 value: sliderValue,
                                 min: 0.0,
                                 max: maxDuration,
-                                onChangeStart: (value) {
-                                  setState(() {
-                                    _isDragging = true;
-                                    _dragValue = value;
-                                  });
-                                },
-                                onChanged: (double value) {
-                                  setState(() {
-                                    _dragValue = value;
-                                  });
-                                },
+                                onChangeStart: (value) => setState(() {
+                                  _isDragging = true;
+                                  _dragValue = value;
+                                }),
+                                onChanged: (value) => setState(() => _dragValue = value),
                                 onChangeEnd: (value) {
                                   context.read<PlayerBloc>().add(SeekEvent(Duration(milliseconds: value.toInt())));
-                                  setState(() {
-                                    _isDragging = false;
-                                  });
+                                  setState(() => _isDragging = false);
                                 },
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 23),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    _formatDuration(_isDragging ? Duration(milliseconds: _dragValue.toInt()) : position),
-                                    style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 12),
+                                  // Left Side: Toggles between Position and Remaining
+                                  InkWell(
+                                    onTap: () => setState(() => _showRemaining = !_showRemaining),
+                                    child: Text(
+                                      _showRemaining ? "-${_formatDuration(remainingTime)}" : _formatDuration(currentDisplayTime),
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.secondary,
+                                        fontSize: 13,
+                                        fontFeatures: const [FontFeature.tabularFigures()], // Prevents text jumping
+                                      ),
+                                    ),
                                   ),
-                                  Text(_formatDuration(duration), style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 12)),
+                                  // Right Side: Always Total Duration
+                                  Text(
+                                    _formatDuration(duration),
+                                    style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 13, fontFeatures: const [FontFeature.tabularFigures()]),
+                                  ),
                                 ],
                               ),
                             ),
@@ -377,7 +425,32 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                       ),
 
                       // Skip Previous
-                      IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipPreviousEvent()), icon: const Icon(Icons.skip_previous_rounded, size: 40), color: iconColor),
+                      BlocSelector<PlayerBloc, PlayerState, Duration>(
+                        selector: (state) => state.position,
+                        builder: (context, position) {
+                          return IconButton(
+                            onPressed: () {
+                              position.inSeconds > 10 ? context.read<PlayerBloc>().add(SeekEvent(position = Duration.zero)) : context.read<PlayerBloc>().add(SkipPreviousEvent());
+                            },
+                            icon: const Icon(Icons.skip_previous_rounded, size: 40),
+                            color: iconColor,
+                          );
+                        },
+                      ),
+
+                      // Fast seek backward for 5 seconds
+                      BlocSelector<PlayerBloc, PlayerState, Duration>(
+                        selector: (state) => state.position,
+                        builder: (context, position) {
+                          return IconButton(
+                            onPressed: () {
+                              position.inSeconds < 5 ? Duration.zero : context.read<PlayerBloc>().add(SeekEvent(position - const Duration(seconds: 5)));
+                            },
+                            icon: const Icon(Icons.fast_rewind_rounded, size: 30),
+                            color: Theme.of(context).colorScheme.secondary,
+                          );
+                        },
+                      ),
 
                       // Play / Pause - Only rebuilds when isPlaying changes
                       BlocSelector<PlayerBloc, PlayerState, bool>(
@@ -390,6 +463,21 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                             },
                             iconSize: 40,
                             icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                          );
+                        },
+                      ),
+
+                      // Fast seek forward for 5 seconds or skip to next if near the end
+                      BlocSelector<PlayerBloc, PlayerState, ({Duration position, Duration duration})>(
+                        selector: (state) => (position: state.position, duration: state.duration),
+                        builder: (context, info) {
+                          return IconButton(
+                            onPressed: () {
+                              final remaining = info.duration - info.position;
+                              (remaining.inSeconds < 5) ? context.read<PlayerBloc>().add(SkipNextEvent()) : context.read<PlayerBloc>().add(SeekEvent(info.position + const Duration(seconds: 5)));
+                            },
+                            icon: const Icon(Icons.fast_forward_rounded, size: 30),
+                            color: Theme.of(context).colorScheme.secondary,
                           );
                         },
                       ),
@@ -409,6 +497,39 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildArtworkWidget(BuildContext context, int songId, double height, double width, {bool isCurrent = false}) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        // إضافة ظل فقط للصورة الحالية لتمييزها
+        boxShadow: isCurrent ? [BoxShadow(color: isDarkTheme ? _bgColors[0].withAlpha(100) : _bgColors[0].withAlpha(50), blurRadius: 30, spreadRadius: 5)] : null,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: QueryArtworkWidget(
+          id: songId,
+          type: ArtworkType.AUDIO,
+          artworkHeight: height,
+          artworkWidth: width,
+          artworkFit: BoxFit.cover,
+          keepOldArtwork: true,
+          quality: 100,
+          artworkQuality: FilterQuality.high,
+          size: 1000,
+          nullArtworkWidget: Container(
+            height: height,
+            width: width,
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            child: Icon(Icons.music_note, size: 80, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ),
       ),
     );
   }

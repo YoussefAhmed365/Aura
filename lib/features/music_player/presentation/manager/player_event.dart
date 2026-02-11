@@ -4,7 +4,7 @@ abstract class PlayerEvent extends Equatable {
   const PlayerEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 // Click on song from the list to play
@@ -38,12 +38,12 @@ class SkipPreviousEvent extends PlayerEvent {}
 
 // Internal events for AudioHandler updates
 class _MediaItemUpdated extends PlayerEvent {
-  final MediaItem mediaItem;
+  final MediaItem? mediaItem;
 
   const _MediaItemUpdated(this.mediaItem);
 
   @override
-  List<Object> get props => [mediaItem];
+  List<Object?> get props => [mediaItem];
 }
 
 class _PlaybackStateUpdated extends PlayerEvent {
@@ -63,4 +63,13 @@ class _PositionUpdated extends PlayerEvent {
 
   @override
   List<Object> get props => [position];
+}
+
+class _QueueUpdated extends PlayerEvent {
+  final List<MediaItem> queue;
+
+  const _QueueUpdated(this.queue);
+
+  @override
+  List<Object> get props => [queue];
 }
