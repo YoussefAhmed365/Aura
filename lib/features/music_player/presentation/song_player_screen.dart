@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:aura/core/widgets/scroll_text_animation.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +17,8 @@ class SongPlayerScreen extends StatefulWidget {
 }
 
 class _SongPlayerScreenState extends State<SongPlayerScreen> {
+  late PageController _pageController;
+
   // Variables to control slider dragging behavior to prevent stuttering
   bool _isDragging = false;
   double _dragValue = 0.0;
@@ -49,6 +50,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(viewportFraction: 0.85, initialPage: 1);
     // Try loading the color for the current song when opening the screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -59,6 +61,12 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
         _currentSongId = songId;
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   // Function to extract dominant color from song artwork
@@ -174,325 +182,354 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
           ),
 
           // Content
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 30),
-              child: Column(
-                children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Dismissible(
+            key: const Key('player_dismiss_key'),
+            direction: DismissDirection.down,
+            onDismissed: (_) {
+              Navigator.pop(context);
+            },
+            background: const ColoredBox(color: Colors.transparent),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 30),
+                child: Column(
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: Icon(Icons.keyboard_arrow_down_rounded, color: Theme.of(context).colorScheme.inverseSurface, size: 35),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text("Now Playing", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.inverseSurface, letterSpacing: 1.5)),
+                          ),
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.inverseSurface),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Album Art - Carousel Implementation
+                    // نستخدم BlocBuilder بدلاً من Selector هنا لأننا نحتاج الوصول للقائمة (Queue) والترتيب
+                    BlocBuilder<PlayerBloc, PlayerState>(
+                      buildWhen: (previous, current) => previous.currentSong?.id != current.currentSong?.id || previous.isPlaying != current.isPlaying,
+                      builder: (context, state) {
+                        // التحقق من وجود أغاني
+                        if (state.currentSong == null) {
+                          return Container(
+                            height: MediaQuery.of(context).size.height * 0.43,
+                            width: 350,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                              boxShadow: [BoxShadow(color: isDarkTheme ? _bgColors[0].withAlpha(100) : _bgColors[0].withAlpha(50), blurRadius: 30, spreadRadius: 5)],
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Icon(Icons.music_note_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 100),
+                          );
+                        }
+
+                        final currentIndex = state.currentIndex; // تأكد أن state يحتوي على currentIndex
+                        final queue = state.queue; // تأكد أن state يحتوي على قائمة التشغيل (queue)
+
+                        // حساب الأغنية السابقة والتالية (مع مراعاة الدوران Loop)
+                        // ملاحظة: افترضنا وجود متغيرات currentIndex و queue داخل الـ State
+                        // إذا لم تكن موجودة، يجب إضافتها أو استخدام المنطق الخاص بك لجلب الاغنية السابقة والتالية
+                        final prevSong = queue.isNotEmpty ? queue[currentIndex > 0 ? currentIndex - 1 : queue.length - 1] : null;
+                        final nextSong = queue.isNotEmpty ? queue[currentIndex < queue.length - 1 ? currentIndex + 1 : 0] : null;
+
+                        final currentId = _getSongId(state.currentSong?.id);
+                        final prevId = _getSongId(prevSong?.id);
+                        final nextId = _getSongId(nextSong?.id);
+
+                        // نستخدم ValueKey لإجبار الـ PageView على إعادة البناء عند تغير الأغنية
+                        // هذا يعيدنا للصفحة رقم 1 (المنتصف) تلقائياً عند تشغيل أغنية جديدة
+                        return SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.43,
+                          child: NotificationListener<ScrollEndNotification>(
+                            // 1. مراقبة انتهاء السحب
+                            onNotification: (notification) {
+                              // نتأكد أن الإشعار هو انتهاء السحب (عمق 0 يعني الـ PageView نفسه وليس عنصر بداخله)
+                              if (notification.depth == 0) {
+                                // نحصل على الصفحة التي استقر عليها المستخدم
+                                final page = _pageController.page?.round();
+
+                                if (page == 0) {
+                                  // استقر على اليسار -> الأغنية السابقة
+                                  context.read<PlayerBloc>().add(SkipPreviousEvent());
+                                } else if (page == 2) {
+                                  // استقر على اليمين -> الأغنية التالية
+                                  context.read<PlayerBloc>().add(SkipNextEvent());
+                                }
+                              }
+                              return false;
+                            },
+                            child: PageView.builder(
+                              key: ValueKey(currentId),
+                              controller: _pageController,
+                              // 2. استخدام الكنترولر المعرف بالأعلى
+                              itemCount: 3,
+                              onPageChanged: (index) {
+                                // 3. نترك هذه فارغة أو نحذفها تماماً لأننا نقلنا المنطق للأعلى
+                              },
+                              itemBuilder: (context, index) {
+                                // ... (نفس كود بناء الصور السابق دون تغيير) ...
+                                int displayId = 0;
+                                bool isCurrent = false;
+
+                                if (index == 0) displayId = prevId;
+                                if (index == 1) {
+                                  displayId = currentId;
+                                  isCurrent = true;
+                                }
+                                if (index == 2) displayId = nextId;
+
+                                return AnimatedScale(
+                                  scale: (isCurrent && state.isPlaying) ? 1.0 : 0.9,
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                  child: GestureDetector(
+                                    onTap: isCurrent ? () => context.read<PlayerBloc>().add(PlayPauseEvent()) : null,
+                                    child: _buildArtworkWidget(context, displayId, MediaQuery.of(context).size.height * 0.43, 320, isCurrent: isCurrent),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // Song Info - ONLY rebuilds when Title or Artist changes
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30),
+                      child: BlocSelector<PlayerBloc, PlayerState, ({String title, String album, String artist})>(
+                        selector: (state) => (title: state.currentSong?.title ?? "No Song Playing", album: state.currentSong?.album ?? "Unknown Album", artist: state.currentSong?.artist ?? "Unknown Artist"),
+                        builder: (context, info) {
+                          return Column(
+                            children: [
+                              SizedBox(
+                                height: 40,
+                                child: ScrollingText(
+                                  text: info.title,
+                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              SizedBox(
+                                height: 25,
+                                child: Text(
+                                  info.album,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 25,
+                                child: Text(
+                                  info.artist,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Function Buttons
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline_rounded, size: 25), color: iconColor),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded, size: 25), color: iconColor),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.subtitles, size: 25), color: iconColor),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.playlist_add, size: 25), color: iconColor),
+                          IconButton(onPressed: () {}, icon: Icon(Icons.share_rounded, size: 25), color: iconColor),
+                        ],
+                      ),
+                    ),
+
+                    // Slider & Duration - Rebuilds frequently (optimized)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: BlocBuilder<PlayerBloc, PlayerState>(
+                        buildWhen: (previous, current) => previous.position != current.position || previous.duration != current.duration,
+                        builder: (context, state) {
+                          final duration = state.duration;
+                          final position = state.position;
+
+                          // 1. Calculate effective values (considering drag state)
+                          double sliderValue = _isDragging ? _dragValue : position.inMilliseconds.toDouble();
+                          double maxDuration = duration.inMilliseconds.toDouble();
+
+                          // Ensure slider doesn't crash on edge cases
+                          if (maxDuration <= 0) maxDuration = 1.0;
+                          sliderValue = sliderValue.clamp(0.0, maxDuration);
+
+                          // 2. Calculate what to show on the left label
+                          final Duration currentDisplayTime = Duration(milliseconds: sliderValue.toInt());
+                          final Duration remainingTime = duration - currentDisplayTime;
+
+                          return Column(
+                            children: [
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  activeTrackColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary,
+                                  inactiveTrackColor: isDarkTheme ? Theme.of(context).colorScheme.inverseSurface.withAlpha(76) : Theme.of(context).colorScheme.inversePrimary,
+                                  thumbColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary,
+                                  trackHeight: 4.0,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0, elevation: 0),
+                                ),
+                                child: Slider(
+                                  value: sliderValue,
+                                  min: 0.0,
+                                  max: maxDuration,
+                                  onChangeStart: (value) => setState(() {
+                                    _isDragging = true;
+                                    _dragValue = value;
+                                  }),
+                                  onChanged: (value) => setState(() => _dragValue = value),
+                                  onChangeEnd: (value) {
+                                    context.read<PlayerBloc>().add(SeekEvent(Duration(milliseconds: value.toInt())));
+                                    setState(() => _isDragging = false);
+                                  },
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 23),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    // Left Side: Toggles between Position and Remaining
+                                    InkWell(
+                                      onTap: () => setState(() => _showRemaining = !_showRemaining),
+                                      child: Text(
+                                        _showRemaining ? "-${_formatDuration(remainingTime)}" : _formatDuration(currentDisplayTime),
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.secondary,
+                                          fontSize: 13,
+                                          fontFeatures: const [FontFeature.tabularFigures()], // Prevents text jumping
+                                        ),
+                                      ),
+                                    ),
+                                    // Right Side: Always Total Duration
+                                    Text(
+                                      _formatDuration(duration),
+                                      style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 13, fontFeatures: const [FontFeature.tabularFigures()]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Controls
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: Icon(Icons.keyboard_arrow_down_rounded, color: Theme.of(context).colorScheme.inverseSurface, size: 35),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: Text("Now Playing", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.inverseSurface, letterSpacing: 1.5)),
-                        ),
-                        IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.inverseSurface),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Album Art - Carousel Implementation
-                  // نستخدم BlocBuilder بدلاً من Selector هنا لأننا نحتاج الوصول للقائمة (Queue) والترتيب
-                  BlocBuilder<PlayerBloc, PlayerState>(
-                    buildWhen: (previous, current) => previous.currentSong?.id != current.currentSong?.id || previous.isPlaying != current.isPlaying,
-                    builder: (context, state) {
-                      // التحقق من وجود أغاني
-                      if (state.currentSong == null) return const SizedBox();
-
-                      final currentIndex = state.currentIndex; // تأكد أن state يحتوي على currentIndex
-                      final queue = state.queue; // تأكد أن state يحتوي على قائمة التشغيل (queue)
-
-                      // حساب الأغنية السابقة والتالية (مع مراعاة الدوران Loop)
-                      // ملاحظة: افترضنا وجود متغيرات currentIndex و queue داخل الـ State
-                      // إذا لم تكن موجودة، يجب إضافتها أو استخدام المنطق الخاص بك لجلب الاغنية السابقة والتالية
-                      final prevSong = queue.isNotEmpty ? queue[currentIndex > 0 ? currentIndex - 1 : queue.length - 1] : null;
-                      final nextSong = queue.isNotEmpty ? queue[currentIndex < queue.length - 1 ? currentIndex + 1 : 0] : null;
-
-                      final currentId = _getSongId(state.currentSong?.id);
-                      final prevId = _getSongId(prevSong?.id);
-                      final nextId = _getSongId(nextSong?.id);
-
-                      // نستخدم ValueKey لإجبار الـ PageView على إعادة البناء عند تغير الأغنية
-                      // هذا يعيدنا للصفحة رقم 1 (المنتصف) تلقائياً عند تشغيل أغنية جديدة
-                      return SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.43,
-                        child: PageView.builder(
-                          key: ValueKey(currentId),
-                          // خدعة مهمة جداً: عند تغير الأغنية، يعاد بناء الـ PageView من الصفر
-                          controller: PageController(viewportFraction: 0.85, initialPage: 1),
-                          // نبدأ دائماً من الصفحة 1 (المنتصف)
-                          itemCount: 3,
-                          // ثلاث صفحات فقط: سابقة، حالية، تالية
-                          onPageChanged: (index) {
-                            if (index == 0) {
-                              // السحب لليمين (للخلف) -> تشغيل السابق
-                              context.read<PlayerBloc>().add(SkipPreviousEvent());
-                            } else if (index == 2) {
-                              // السحب لليسار (للأمام) -> تشغيل التالي
-                              context.read<PlayerBloc>().add(SkipNextEvent());
-                            }
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const EqualizerScreen()));
                           },
-                          itemBuilder: (context, index) {
-                            // تحديد أي أغنية نعرض بناءً على الـ Index
-                            int displayId = 0;
-                            bool isCurrent = false;
+                          icon: const Icon(Icons.equalizer_rounded, size: 28),
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
 
-                            if (index == 0) displayId = prevId; // الصفحة اليسرى (السابقة)
-                            if (index == 1) {
-                              displayId = currentId; // الصفحة الوسطى (الحالية)
-                              isCurrent = true;
-                            }
-                            if (index == 2) displayId = nextId; // الصفحة اليمنى (التالية)
-
-                            // إضافة Animation للصورة الحالية (تصغير وتكبير عند التشغيل)
-                            return AnimatedScale(
-                              scale: (isCurrent && state.isPlaying) ? 1.0 : 0.9, // الصورة الجانبية تكون أصغر قليلاً
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                              child: GestureDetector(
-                                onTap: isCurrent ? () => context.read<PlayerBloc>().add(PlayPauseEvent()) : null,
-                                child: _buildArtworkWidget(context, displayId, MediaQuery.of(context).size.height * 0.43, 320, isCurrent: isCurrent),
-                              ),
+                        // Skip Previous
+                        BlocSelector<PlayerBloc, PlayerState, Duration>(
+                          selector: (state) => state.position,
+                          builder: (context, position) {
+                            return IconButton(
+                              onPressed: () {
+                                position.inSeconds > 10 ? context.read<PlayerBloc>().add(SeekEvent(position = Duration.zero)) : context.read<PlayerBloc>().add(SkipPreviousEvent());
+                              },
+                              icon: const Icon(Icons.skip_previous_rounded, size: 40),
+                              color: iconColor,
                             );
                           },
                         ),
-                      );
-                    },
-                  ),
 
-                  const SizedBox(height: 30),
+                        // Fast seek backward for 5 seconds
+                        BlocSelector<PlayerBloc, PlayerState, Duration>(
+                          selector: (state) => state.position,
+                          builder: (context, position) {
+                            return IconButton(
+                              onPressed: () {
+                                position.inSeconds < 5 ? Duration.zero : context.read<PlayerBloc>().add(SeekEvent(position - const Duration(seconds: 5)));
+                              },
+                              icon: const Icon(Icons.fast_rewind_rounded, size: 30),
+                              color: Theme.of(context).colorScheme.secondary,
+                            );
+                          },
+                        ),
 
-                  // Song Info - ONLY rebuilds when Title or Artist changes
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: BlocSelector<PlayerBloc, PlayerState, ({String title, String album, String artist})>(
-                      selector: (state) => (title: state.currentSong?.title ?? "No Song Playing", album: state.currentSong?.album ?? "Unknown Album", artist: state.currentSong?.artist ?? "Unknown Artist"),
-                      builder: (context, info) {
-                        return Column(
-                          children: [
-                            SizedBox(
-                              height: 40,
-                              child: ScrollingText(
-                                text: info.title,
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            SizedBox(
-                              height: 25,
-                              child: Text(
-                                info.album,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            SizedBox(
-                              height: 25,
-                              child: Text(
-                                info.artist,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.secondary),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                        // Play / Pause - Only rebuilds when isPlaying changes
+                        BlocSelector<PlayerBloc, PlayerState, bool>(
+                          selector: (state) => state.isPlaying,
+                          builder: (context, isPlaying) {
+                            return IconButton.filled(
+                              style: IconButton.styleFrom(backgroundColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary, foregroundColor: isDarkTheme ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.onPrimary),
+                              onPressed: () {
+                                context.read<PlayerBloc>().add(PlayPauseEvent());
+                              },
+                              iconSize: 40,
+                              icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                            );
+                          },
+                        ),
 
-                  const SizedBox(height: 20),
+                        // Fast seek forward for 5 seconds or skip to next if near the end
+                        BlocSelector<PlayerBloc, PlayerState, ({Duration position, Duration duration})>(
+                          selector: (state) => (position: state.position, duration: state.duration),
+                          builder: (context, info) {
+                            return IconButton(
+                              onPressed: () {
+                                final remaining = info.duration - info.position;
+                                (remaining.inSeconds < 5) ? context.read<PlayerBloc>().add(SkipNextEvent()) : context.read<PlayerBloc>().add(SeekEvent(info.position + const Duration(seconds: 5)));
+                              },
+                              icon: const Icon(Icons.fast_forward_rounded, size: 30),
+                              color: Theme.of(context).colorScheme.secondary,
+                            );
+                          },
+                        ),
 
-                  // Function Buttons
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline_rounded, size: 25), color: iconColor),
-                        IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded, size: 25), color: iconColor),
-                        IconButton(onPressed: () {}, icon: Icon(Icons.subtitles, size: 25), color: iconColor),
-                        IconButton(onPressed: () {}, icon: Icon(Icons.playlist_add, size: 25), color: iconColor),
-                        IconButton(onPressed: () {}, icon: Icon(Icons.share_rounded, size: 25), color: iconColor),
+                        // Skip Next
+                        IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()), icon: const Icon(Icons.skip_next_rounded, size: 40), color: iconColor),
+
+                        // Mode Button
+                        Tooltip(
+                          message: _modeToolTip[_playModeController],
+                          child: IconButton(onPressed: _changePlayMode, icon: Icon(_playModeIcon, size: 28), color: Theme.of(context).colorScheme.secondary, padding: const EdgeInsets.all(16)),
+                        ),
                       ],
                     ),
-                  ),
-
-                  // Slider & Duration - Rebuilds frequently (optimized)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: BlocBuilder<PlayerBloc, PlayerState>(
-                      buildWhen: (previous, current) => previous.position != current.position || previous.duration != current.duration,
-                      builder: (context, state) {
-                        final duration = state.duration;
-                        final position = state.position;
-
-                        // 1. Calculate effective values (considering drag state)
-                        double sliderValue = _isDragging ? _dragValue : position.inMilliseconds.toDouble();
-                        double maxDuration = duration.inMilliseconds.toDouble();
-
-                        // Ensure slider doesn't crash on edge cases
-                        if (maxDuration <= 0) maxDuration = 1.0;
-                        sliderValue = sliderValue.clamp(0.0, maxDuration);
-
-                        // 2. Calculate what to show on the left label
-                        final Duration currentDisplayTime = Duration(milliseconds: sliderValue.toInt());
-                        final Duration remainingTime = duration - currentDisplayTime;
-
-                        return Column(
-                          children: [
-                            SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                activeTrackColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary,
-                                inactiveTrackColor: isDarkTheme ? Theme.of(context).colorScheme.inverseSurface.withAlpha(76) : Theme.of(context).colorScheme.inversePrimary,
-                                thumbColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary,
-                                trackHeight: 4.0,
-                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0, elevation: 0),
-                              ),
-                              child: Slider(
-                                value: sliderValue,
-                                min: 0.0,
-                                max: maxDuration,
-                                onChangeStart: (value) => setState(() {
-                                  _isDragging = true;
-                                  _dragValue = value;
-                                }),
-                                onChanged: (value) => setState(() => _dragValue = value),
-                                onChangeEnd: (value) {
-                                  context.read<PlayerBloc>().add(SeekEvent(Duration(milliseconds: value.toInt())));
-                                  setState(() => _isDragging = false);
-                                },
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 23),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  // Left Side: Toggles between Position and Remaining
-                                  InkWell(
-                                    onTap: () => setState(() => _showRemaining = !_showRemaining),
-                                    child: Text(
-                                      _showRemaining ? "-${_formatDuration(remainingTime)}" : _formatDuration(currentDisplayTime),
-                                      style: TextStyle(
-                                        color: Theme.of(context).colorScheme.secondary,
-                                        fontSize: 13,
-                                        fontFeatures: const [FontFeature.tabularFigures()], // Prevents text jumping
-                                      ),
-                                    ),
-                                  ),
-                                  // Right Side: Always Total Duration
-                                  Text(
-                                    _formatDuration(duration),
-                                    style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 13, fontFeatures: const [FontFeature.tabularFigures()]),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Controls
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const EqualizerScreen()));
-                        },
-                        icon: const Icon(Icons.equalizer_rounded, size: 28),
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-
-                      // Skip Previous
-                      BlocSelector<PlayerBloc, PlayerState, Duration>(
-                        selector: (state) => state.position,
-                        builder: (context, position) {
-                          return IconButton(
-                            onPressed: () {
-                              position.inSeconds > 10 ? context.read<PlayerBloc>().add(SeekEvent(position = Duration.zero)) : context.read<PlayerBloc>().add(SkipPreviousEvent());
-                            },
-                            icon: const Icon(Icons.skip_previous_rounded, size: 40),
-                            color: iconColor,
-                          );
-                        },
-                      ),
-
-                      // Fast seek backward for 5 seconds
-                      BlocSelector<PlayerBloc, PlayerState, Duration>(
-                        selector: (state) => state.position,
-                        builder: (context, position) {
-                          return IconButton(
-                            onPressed: () {
-                              position.inSeconds < 5 ? Duration.zero : context.read<PlayerBloc>().add(SeekEvent(position - const Duration(seconds: 5)));
-                            },
-                            icon: const Icon(Icons.fast_rewind_rounded, size: 30),
-                            color: Theme.of(context).colorScheme.secondary,
-                          );
-                        },
-                      ),
-
-                      // Play / Pause - Only rebuilds when isPlaying changes
-                      BlocSelector<PlayerBloc, PlayerState, bool>(
-                        selector: (state) => state.isPlaying,
-                        builder: (context, isPlaying) {
-                          return IconButton.filled(
-                            style: IconButton.styleFrom(backgroundColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary, foregroundColor: isDarkTheme ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.onPrimary),
-                            onPressed: () {
-                              context.read<PlayerBloc>().add(PlayPauseEvent());
-                            },
-                            iconSize: 40,
-                            icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                          );
-                        },
-                      ),
-
-                      // Fast seek forward for 5 seconds or skip to next if near the end
-                      BlocSelector<PlayerBloc, PlayerState, ({Duration position, Duration duration})>(
-                        selector: (state) => (position: state.position, duration: state.duration),
-                        builder: (context, info) {
-                          return IconButton(
-                            onPressed: () {
-                              final remaining = info.duration - info.position;
-                              (remaining.inSeconds < 5) ? context.read<PlayerBloc>().add(SkipNextEvent()) : context.read<PlayerBloc>().add(SeekEvent(info.position + const Duration(seconds: 5)));
-                            },
-                            icon: const Icon(Icons.fast_forward_rounded, size: 30),
-                            color: Theme.of(context).colorScheme.secondary,
-                          );
-                        },
-                      ),
-
-                      // Skip Next
-                      IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()), icon: const Icon(Icons.skip_next_rounded, size: 40), color: iconColor),
-
-                      // Mode Button
-                      Tooltip(
-                        message: _modeToolTip[_playModeController],
-                        child: IconButton(onPressed: _changePlayMode, icon: Icon(_playModeIcon, size: 28), color: Theme.of(context).colorScheme.secondary, padding: const EdgeInsets.all(16)),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

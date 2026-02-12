@@ -57,11 +57,24 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   // دالة مساعدة لتحويل البيانات لمصدر صوت
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
+    // 1. محاولة الحصول على المسار من الـ extras (الذي أرسلناه من الـ Bloc)
+    // نفضل استخدام 'uri' لأنه يدعم Scoped Storage في أندرويد الحديث، ثم نلجأ لـ 'url' (المسار المباشر)
+    final String? sourceUri = mediaItem.extras?['uri'] ?? mediaItem.extras?['url'];
+
+    // 2. إذا لم نجد مساراً، نستخدم الـ id كخيار أخير (رغم أنه هو سبب المشكلة الحالية)
+    final uriToUse = sourceUri ?? mediaItem.id;
+
     return AudioSource.uri(
-      Uri.parse(mediaItem.id), // مسار الملف
-      tag: mediaItem, // نرفق البيانات مع الملف لنعرف اسمه لاحقاً
+      Uri.parse(uriToUse), // الآن سيتم استخدام content://... أو المسار الفعلي
+      tag: mediaItem,
     );
   }
+  // UriAudioSource _createAudioSource(MediaItem mediaItem) {
+  //   return AudioSource.uri(
+  //     Uri.parse(mediaItem.id), // مسار الملف
+  //     tag: mediaItem, // نرفق البيانات مع الملف لنعرف اسمه لاحقاً
+  //   );
+  // }
 
   // --- 2. التحكم في التشغيل ---
 
