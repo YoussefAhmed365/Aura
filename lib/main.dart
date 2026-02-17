@@ -27,8 +27,8 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        home: const Scaffold(body: MainWrapperPage()),
+        themeMode: ThemeMode.system,
+        home: const Scaffold(body: MainWrapperPage(index: 0)),
       ),
     );
   }

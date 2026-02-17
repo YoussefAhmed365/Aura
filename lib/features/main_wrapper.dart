@@ -6,20 +6,33 @@ import 'package:aura/features/songs/presentation/songs_page.dart';
 import 'package:flutter/material.dart';
 
 class MainWrapperPage extends StatefulWidget {
-  const MainWrapperPage({super.key});
+  final int? index;
+  const MainWrapperPage({super.key, this.index});
 
   @override
   State<MainWrapperPage> createState() => _MainWrapperPageState();
 }
 
 class _MainWrapperPageState extends State<MainWrapperPage> {
-  int _currentIndex = 0;
+  late int _currentIndex;
   late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.index ?? 0;
     _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void didUpdateWidget(covariant MainWrapperPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if the index has changed and is not null
+    if (widget.index != null && widget.index != oldWidget.index) {
+      // Logic to sync internal state with the new property
+      _onBottomNavTapped(widget.index!);
+    }
   }
 
   @override
@@ -33,7 +46,14 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
       _currentIndex = index;
     });
 
-    _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    // Animate the PageView to the new index
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut
+      );
+    }
   }
 
   void _onPageChanged(int index) {
@@ -70,7 +90,7 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
           ),
 
           // Mini Player
-          Positioned(bottom: -10, left: 0, right: 0, child: MiniPlayer()),
+          Positioned(bottom: MediaQuery.of(context).size.height * -0.86, left: 0, right: 0, child: MiniPlayer()),
         ],
       ),
 

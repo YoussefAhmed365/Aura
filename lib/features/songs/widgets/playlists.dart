@@ -6,7 +6,7 @@ class Playlists extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.only(top: 10, bottom: 20),
+      padding: const EdgeInsets.only(top: 10, bottom: 80),
       sliver: SliverToBoxAdapter(child: Center(child: Text("Playlists"))),
     );
   }
