@@ -3,9 +3,14 @@ import 'package:aura/features/music_player/services/audio_handler.dart';
 import 'package:injectable/injectable.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @module
 abstract class RegisterModule {
+  @preResolve
+  @singleton
+  Future<SharedPreferences> get prefs => SharedPreferences.getInstance();
+
   @lazySingleton
   AudioPlayer get audioPlayer => AudioPlayer(); // For Audio Player
 

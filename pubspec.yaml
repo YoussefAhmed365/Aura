@@ -58,6 +58,8 @@ dependencies:
   flutter_animate: ^4.5.2
   palette_generator: ^0.3.3+7 # To extract colors of Aura
   fluttertoast: ^9.0.0
+  shared_preferences: ^2.5.4
+  package_info_plus: ^9.0.0
 
 dependency_overrides:
   on_audio_query_android:
