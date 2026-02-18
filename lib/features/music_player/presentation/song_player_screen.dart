@@ -461,31 +461,23 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                         ),
 
                         // Skip Previous
-                        BlocSelector<PlayerBloc, PlayerState, Duration>(
-                          selector: (state) => state.position,
-                          builder: (context, position) {
-                            return IconButton(
-                              onPressed: () {
-                                position.inSeconds > 10 ? context.read<PlayerBloc>().add(SeekEvent(position = Duration.zero)) : context.read<PlayerBloc>().add(SkipPreviousEvent());
-                              },
-                              icon: const Icon(Icons.skip_previous_rounded, size: 40),
-                              color: iconColor,
-                            );
+                        IconButton(
+                          onPressed: () {
+                            final position = context.read<PlayerBloc>().state.position;
+                            position.inSeconds > 10 ? context.read<PlayerBloc>().add(const SeekEvent(Duration.zero)) : context.read<PlayerBloc>().add(SkipPreviousEvent());
                           },
+                          icon: const Icon(Icons.skip_previous_rounded, size: 40),
+                          color: iconColor,
                         ),
 
                         // Fast seek backward for 5 seconds
-                        BlocSelector<PlayerBloc, PlayerState, Duration>(
-                          selector: (state) => state.position,
-                          builder: (context, position) {
-                            return IconButton(
-                              onPressed: () {
-                                position.inSeconds < 5 ? Duration.zero : context.read<PlayerBloc>().add(SeekEvent(position - const Duration(seconds: 5)));
-                              },
-                              icon: const Icon(Icons.fast_rewind_rounded, size: 30),
-                              color: Theme.of(context).colorScheme.secondary,
-                            );
+                        IconButton(
+                          onPressed: () {
+                            final position = context.read<PlayerBloc>().state.position;
+                            context.read<PlayerBloc>().add(SeekEvent(position.inSeconds < 5 ? Duration.zero : position - const Duration(seconds: 5)));
                           },
+                          icon: const Icon(Icons.fast_rewind_rounded, size: 30),
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
 
                         // Play / Pause - Only rebuilds when isPlaying changes
@@ -504,18 +496,14 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                         ),
 
                         // Fast seek forward for 5 seconds or skip to next if near the end
-                        BlocSelector<PlayerBloc, PlayerState, ({Duration position, Duration duration})>(
-                          selector: (state) => (position: state.position, duration: state.duration),
-                          builder: (context, info) {
-                            return IconButton(
-                              onPressed: () {
-                                final remaining = info.duration - info.position;
-                                (remaining.inSeconds < 5) ? context.read<PlayerBloc>().add(SkipNextEvent()) : context.read<PlayerBloc>().add(SeekEvent(info.position + const Duration(seconds: 5)));
-                              },
-                              icon: const Icon(Icons.fast_forward_rounded, size: 30),
-                              color: Theme.of(context).colorScheme.secondary,
-                            );
+                        IconButton(
+                          onPressed: () {
+                            final state = context.read<PlayerBloc>().state;
+                            final remaining = state.duration - state.position;
+                            (remaining.inSeconds < 5) ? context.read<PlayerBloc>().add(SkipNextEvent()) : context.read<PlayerBloc>().add(SeekEvent(state.position + const Duration(seconds: 5)));
                           },
+                          icon: const Icon(Icons.fast_forward_rounded, size: 30),
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
 
                         // Skip Next
