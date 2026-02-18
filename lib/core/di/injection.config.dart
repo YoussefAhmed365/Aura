@@ -14,6 +14,7 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:just_audio/just_audio.dart' as _i501;
 import 'package:on_audio_query/on_audio_query.dart' as _i859;
+import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 import '../../features/music_player/data/repositories/audio_repository_impl.dart'
     as _i398;
@@ -21,6 +22,7 @@ import '../../features/music_player/domain/repositories/audio_repository.dart'
     as _i889;
 import '../../features/music_player/presentation/manager/player_bloc.dart'
     as _i330;
+import '../../features/settings/presentation/manager/theme_cubit.dart' as _i407;
 import 'register_module.dart' as _i291;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -31,6 +33,10 @@ extension GetItInjectableX on _i174.GetIt {
   }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final registerModule = _$RegisterModule();
+    await gh.singletonAsync<_i460.SharedPreferences>(
+      () => registerModule.prefs,
+      preResolve: true,
+    );
     await gh.singletonAsync<_i87.AudioHandler>(
       () => registerModule.audioHandler,
       preResolve: true,
@@ -42,6 +48,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i889.AudioRepository>(
       () => _i398.AudioRepositoryImpl(gh<_i859.OnAudioQuery>()),
+    );
+    gh.factory<_i407.ThemeCubit>(
+      () => _i407.ThemeCubit(gh<_i460.SharedPreferences>()),
     );
     return this;
   }

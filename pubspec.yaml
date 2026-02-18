@@ -58,6 +58,8 @@ dependencies:
   flutter_animate: ^4.5.2
   palette_generator_master: ^1.0.1
   fluttertoast: ^9.0.0
+  shared_preferences: ^2.5.4
+  package_info_plus: ^9.0.0
 
 dependency_overrides:
   on_audio_query_android:

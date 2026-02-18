@@ -5,6 +5,7 @@ import 'core/di/injection.dart';
 import 'core/theme/app_theme.dart';
 import 'features/main_wrapper.dart';
 import 'features/music_player/presentation/manager/player_bloc.dart';
+import 'features/settings/presentation/manager/theme_cubit.dart';
 import 'features/splash/presentation/splash_screen.dart';
 
 void main() {
@@ -21,14 +22,19 @@ class MyApp extends StatelessWidget {
       providers: [
         // Request "GetIt" to give a copy of "Bloc"
         BlocProvider(create: (_) => getIt<PlayerBloc>()),
+        BlocProvider(create: (_) => getIt<ThemeCubit>()),
       ],
-      child: MaterialApp(
-        title: 'Aura - Music Player',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: const Scaffold(body: MainWrapperPage(index: 0)),
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp(
+            title: 'Aura - Music Player',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
+            home: const Scaffold(body: MainWrapperPage(index: 0)),
+          );
+        },
       ),
     );
   }
