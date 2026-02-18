@@ -38,8 +38,8 @@ class _MiniPlayerState extends State<MiniPlayer> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  int _getSongId(String songUri) {
-    String idString = songUri.split('/').last;
+  int _getSongId(String songId) {
+    String idString = songId.split('/').last;
     try {
       return int.parse(idString);
     } catch (e) {
