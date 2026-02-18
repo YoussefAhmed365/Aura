@@ -28,10 +28,9 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  int _getSongId(String songUri) {
-    String idString = songUri.split('/').last;
+  int _getSongId(String songId) {
     try {
-      return int.parse(idString);
+      return int.parse(songId);
     } catch (e) {
       return 0;
     }
