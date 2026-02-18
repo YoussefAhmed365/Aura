@@ -38,6 +38,8 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    // التحقق من الوضع الحالي (فاتح أم مظلم)
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isDark && _bgColors[0] == const Color(0xFFF3E5F5)) {
       _bgColors = [const Color(0xFF2E1C4E), Colors.black];
@@ -75,10 +77,13 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
     super.dispose();
   }
 
+  // Function to extract dominant color from song artwork
   Future<void> _updatePalette(int songId, bool isDarkTheme) async {
     final OnAudioQuery audioQuery = OnAudioQuery();
     try {
+      // 1. Get image as Bytes
       final Uint8List? artworkBytes = await audioQuery.queryArtwork(songId, ArtworkType.AUDIO);
+
       if (artworkBytes != null) {
         final PaletteGeneratorMaster palette = await PaletteGeneratorMaster.fromImageProvider(MemoryImage(artworkBytes));
         final Color? extractedColor = isDarkTheme ? (palette.darkMutedColor?.color ?? palette.dominantColor?.color ?? palette.darkVibrantColor?.color) : (palette.lightVibrantColor?.color ?? palette.vibrantColor?.color ?? palette.lightMutedColor?.color ?? palette.dominantColor?.color);
@@ -95,6 +100,8 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
     } catch (e) {
       debugPrint("Error generating palette: $e");
     }
+
+    // Revert to default color in case of failure or no image
     if (mounted) {
       setState(() {
         _bgColors = isDarkTheme ? [const Color(0xFF2E1C4E), Colors.black] : [const Color(0xFFF3E5F5), Colors.white];
@@ -108,6 +115,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
       if (_playModeController > 1) {
         _playModeController = 0;
       }
+
       switch (_playModeController) {
         case 0:
           _playModeIcon = Icons.arrow_forward_ios_rounded;
@@ -120,6 +128,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
           break;
       }
     });
+
     _showSystemToast(_modeToolTip[_playModeController]);
   }
 
@@ -127,6 +136,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
     Fluttertoast.showToast(msg: message, toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM, timeInSecForIosWeb: 1, backgroundColor: const Color(0xCC000000), textColor: Colors.white, fontSize: 14.0);
   }
 
+  // Helper function to format duration (00:00)
   String _formatDuration(Duration? duration) {
     if (duration == null) return "--:--";
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -134,6 +144,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
     return "${duration.inMinutes}:$seconds";
   }
 
+  // Extract Song ID for artwork
   int _getSongId(String? songUri) {
     if (songUri == null) return 0;
     String idString = songUri.split('/').last;
@@ -146,7 +157,9 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // This checks if the current theme is dark
     final bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
     final iconColor = isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.inverseSurface;
 
     return Dismissible(
@@ -241,6 +254,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                           previous.isPlaying != current.isPlaying ||
                           previous.currentIndex != current.currentIndex,
                       builder: (context, state) {
+                        // التحقق من وجود أغاني
                         if (state.currentSong == null || state.queue.isEmpty) {
                           return _buildPlaceholder(context, isDarkTheme);
                         }
@@ -254,6 +268,8 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                           });
                         }
 
+                        // نستخدم ValueKey لإجبار الـ PageView على إعادة البناء عند تغير الأغنية
+                        // هذا يعيدنا للصفحة رقم 1 (المنتصف) تلقائياً عند تشغيل أغنية جديدة
                         return SizedBox(
                           height: MediaQuery.of(context).size.height * 0.43,
                           child: PageView.builder(
@@ -364,7 +380,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                       ),
                     ),
 
-                    // Slider & Duration
+                    // Slider & Duration - Rebuilds frequently (optimized)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: BlocBuilder<PlayerBloc, PlayerState>(
@@ -373,12 +389,15 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                           final duration = state.duration;
                           final position = state.position;
 
+                          // 1. Calculate effective values (considering drag state)
                           double sliderValue = _isDragging ? _dragValue : position.inMilliseconds.toDouble();
                           double maxDuration = duration.inMilliseconds.toDouble();
 
+                          // Ensure slider doesn't crash on edge cases
                           if (maxDuration <= 0) maxDuration = 1.0;
                           sliderValue = sliderValue.clamp(0.0, maxDuration);
 
+                          // 2. Calculate what to show on the left label
                           final Duration currentDisplayTime = Duration(milliseconds: sliderValue.toInt());
                           final Duration remainingTime = duration - currentDisplayTime;
 
@@ -412,6 +431,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
+                                    // Left Side: Toggles between Position and Remaining
                                     InkWell(
                                       onTap: () => setState(() => _showRemaining = !_showRemaining),
                                       child: Text(
@@ -419,10 +439,11 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                                         style: TextStyle(
                                           color: Theme.of(context).colorScheme.secondary,
                                           fontSize: 13,
-                                          fontFeatures: const [FontFeature.tabularFigures()],
+                                          fontFeatures: const [FontFeature.tabularFigures()], // Prevents text jumping
                                         ),
                                       ),
                                     ),
+                                    // Right Side: Always Total Duration
                                     Text(
                                       _formatDuration(duration),
                                       style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 13, fontFeatures: const [FontFeature.tabularFigures()]),
@@ -452,66 +473,54 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                             color: Theme.of(context).colorScheme.secondary,
                           ),
 
-                          // Skip Previous
-                          BlocSelector<PlayerBloc, PlayerState, Duration>(
-                            selector: (state) => state.position,
-                            builder: (context, position) {
-                              return IconButton(
-                                onPressed: () {
-                                  position.inSeconds > 10 ? context.read<PlayerBloc>().add(SeekEvent(position = Duration.zero)) : context.read<PlayerBloc>().add(SkipPreviousEvent());
-                                },
-                                icon: const Icon(Icons.skip_previous_rounded, size: 40),
-                                color: iconColor,
-                              );
-                            },
-                          ),
+                        // Skip Previous
+                        IconButton(
+                          onPressed: () {
+                            final position = context.read<PlayerBloc>().state.position;
+                            position.inSeconds > 10 ? context.read<PlayerBloc>().add(const SeekEvent(Duration.zero)) : context.read<PlayerBloc>().add(SkipPreviousEvent());
+                          },
+                          icon: const Icon(Icons.skip_previous_rounded, size: 40),
+                          color: iconColor,
+                        ),
 
-                          // Fast seek backward
-                          BlocSelector<PlayerBloc, PlayerState, Duration>(
-                            selector: (state) => state.position,
-                            builder: (context, position) {
-                              return IconButton(
-                                onPressed: () {
-                                  position.inSeconds < 5 ? Duration.zero : context.read<PlayerBloc>().add(SeekEvent(position - const Duration(seconds: 5)));
-                                },
-                                icon: const Icon(Icons.fast_rewind_rounded, size: 30),
-                                color: Theme.of(context).colorScheme.secondary,
-                              );
-                            },
-                          ),
+                        // Fast seek backward for 5 seconds
+                        IconButton(
+                          onPressed: () {
+                            final position = context.read<PlayerBloc>().state.position;
+                            context.read<PlayerBloc>().add(SeekEvent(position.inSeconds < 5 ? Duration.zero : position - const Duration(seconds: 5)));
+                          },
+                          icon: const Icon(Icons.fast_rewind_rounded, size: 30),
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
 
-                          // Play / Pause
-                          BlocSelector<PlayerBloc, PlayerState, bool>(
-                            selector: (state) => state.isPlaying,
-                            builder: (context, isPlaying) {
-                              return IconButton.filled(
-                                style: IconButton.styleFrom(backgroundColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary, foregroundColor: isDarkTheme ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.onPrimary),
-                                onPressed: () {
-                                  context.read<PlayerBloc>().add(PlayPauseEvent());
-                                },
-                                iconSize: 40,
-                                icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                              );
-                            },
-                          ),
+                        // Play / Pause - Only rebuilds when isPlaying changes
+                        BlocSelector<PlayerBloc, PlayerState, bool>(
+                          selector: (state) => state.isPlaying,
+                          builder: (context, isPlaying) {
+                            return IconButton.filled(
+                              style: IconButton.styleFrom(backgroundColor: isDarkTheme ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary, foregroundColor: isDarkTheme ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.onPrimary),
+                              onPressed: () {
+                                context.read<PlayerBloc>().add(PlayPauseEvent());
+                              },
+                              iconSize: 40,
+                              icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                            );
+                          },
+                        ),
 
-                          // Fast seek forward
-                          BlocSelector<PlayerBloc, PlayerState, ({Duration position, Duration duration})>(
-                            selector: (state) => (position: state.position, duration: state.duration),
-                            builder: (context, info) {
-                              return IconButton(
-                                onPressed: () {
-                                  final remaining = info.duration - info.position;
-                                  (remaining.inSeconds < 5) ? context.read<PlayerBloc>().add(SkipNextEvent()) : context.read<PlayerBloc>().add(SeekEvent(info.position + const Duration(seconds: 5)));
-                                },
-                                icon: const Icon(Icons.fast_forward_rounded, size: 30),
-                                color: Theme.of(context).colorScheme.secondary,
-                              );
-                            },
-                          ),
+                        // Fast seek forward for 5 seconds or skip to next if near the end
+                        IconButton(
+                          onPressed: () {
+                            final state = context.read<PlayerBloc>().state;
+                            final remaining = state.duration - state.position;
+                            (remaining.inSeconds < 5) ? context.read<PlayerBloc>().add(SkipNextEvent()) : context.read<PlayerBloc>().add(SeekEvent(state.position + const Duration(seconds: 5)));
+                          },
+                          icon: const Icon(Icons.fast_forward_rounded, size: 30),
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
 
-                          // Skip Next
-                          IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()), icon: const Icon(Icons.skip_next_rounded, size: 40), color: iconColor),
+                        // Skip Next
+                        IconButton(onPressed: () => context.read<PlayerBloc>().add(SkipNextEvent()), icon: const Icon(Icons.skip_next_rounded, size: 40), color: iconColor),
 
                           // Mode Button
                           Tooltip(
