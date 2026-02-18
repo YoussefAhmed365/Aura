@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
-            home: const Scaffold(body: MainWrapperPage()),
+            home: const Scaffold(body: MainWrapperPage(index: 0)),
           );
         },
       ),

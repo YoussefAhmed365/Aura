@@ -111,7 +111,7 @@ class _ScrollingTextState extends State<ScrollingText> with SingleTickerProvider
           );
 
     return SizedBox(
-      height: 40, // Height constraint to prevent layout shifts
+      height: widget.isMiniPlayer ? 28 : 40, // Height constraint to prevent layout shifts
       child: Directionality(textDirection: resolvedDirection, child: resolvedAlign),
     );
   }

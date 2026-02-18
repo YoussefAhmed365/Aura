@@ -23,7 +23,7 @@ class _ArtistsState extends State<Artists> {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.only(top: 10, bottom: 20),
+      padding: const EdgeInsets.only(top: 10, bottom: 80),
       sliver: FutureBuilder(
         future: _artistsFuture,
         builder: (context, snapshot) {

@@ -12,13 +12,16 @@ part 'player_state.dart';
 @injectable
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final AudioHandler _audioHandler;
+  final Stream<Duration>? _positionStream;
 
   // اشتراكات لمراقبة التغيرات في المشغل
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _mediaItemSubscription;
   StreamSubscription? _queueSubscription;
 
-  PlayerBloc(this._audioHandler) : super(const PlayerState()) {
+  PlayerBloc(this._audioHandler, {Stream<Duration>? positionStream})
+      : _positionStream = positionStream,
+        super(const PlayerState()) {
     // --- الاستماع للأحداث القادمة من UI ---
     on<PlayAllEvent>(_onPlayAll);
     on<PlayPauseEvent>(_onPlayPause);
@@ -130,7 +133,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
 
     // 3. مراقبة شريط التقدم (Position)
-    AudioService.position.listen((position) {
+    (_positionStream ?? AudioService.position).listen((position) {
       add(_PositionUpdated(position));
     });
 
