@@ -655,7 +655,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.1"
-  palette_generator:
   palette_generator_master:
     dependency: "direct main"
     description:

@@ -52,14 +52,14 @@ dependencies:
   # Database
   hive: ^2.2.3 # Lightweight and blazing fast key-value database written in pure Dart. Strongly encrypted using AES-256.
   hive_flutter: ^1.1.0 # Extension for Hive. Makes it easier to use Hive in Flutter apps
+  shared_preferences: ^2.5.4
+  package_info_plus: ^9.0.0
 
   # UI & Design
   google_fonts: ^8.0.1
   flutter_animate: ^4.5.2
   palette_generator_master: ^1.0.1
-  fluttertoast: ^9.0.0
-  shared_preferences: ^2.5.4
-  package_info_plus: ^9.0.0
+  fluttertoast: ^9.0.0 # Flutter plugin for querying information about the application package, such as CFBundleVersion on iOS or versionCode on Android.
 
 dependency_overrides:
   on_audio_query_android:
