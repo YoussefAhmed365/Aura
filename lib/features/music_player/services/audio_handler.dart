@@ -10,30 +10,37 @@ Future<AudioHandler> initAudioService() async {
       androidNotificationChannelName: 'Music Playback',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
-      // أيقونة الإشعار (تأكد من وجودها في android/app/src/main/res/drawable)
+      // Notification icon (make sure it exists in android/app/src/main/res/drawable)
       androidNotificationIcon: 'drawable/ic_stat_music_note',
     ),
   );
 }
 
 class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
-  // 1. استخدام ConcatenatingAudioSource بدلاً من القائمة العادية
-  // هذا يسمح بإدارة القائمة (Gapless Playback) والتنقل التلقائي
+  // 1. Use ConcatenatingAudioSource instead of a regular list
+  // This allows for queue management (Gapless Playback) and automatic navigation
   final _player = AudioPlayer();
+
+  // ignore: deprecated_member_use
   final _playlist = ConcatenatingAudioSource(children: []);
 
-  static const _favortieSolidControl = MediaControl(
-    androidIcon: 'drawable/ic_favorite_solid',
-    label: 'Favorite',
-    action: MediaAction.custom,
-    customAction: 'action_unfavorite',
-  );
+  bool isFavorite = false;
+
+  static const String actionAddFavorite = 'action_add_favorite';
+  static const String actionRemoveFavorite = 'action_remove_favorite';
 
   static const _favortieOutlinedControl = MediaControl(
     androidIcon: 'drawable/ic_favorite_outlined',
     label: 'Unfavorite',
     action: MediaAction.custom,
-    customAction: 'action_favorite',
+    customAction: CustomMediaAction(name: actionAddFavorite),
+  );
+
+  static const _favortieSolidControl = MediaControl(
+    androidIcon: 'drawable/ic_favorite_solid',
+    label: 'Favorite',
+    action: MediaAction.custom,
+    customAction: CustomMediaAction(name: actionRemoveFavorite),
   );
 
   static const _closeControl = MediaControl(
@@ -44,25 +51,25 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   static const _playControl = MediaControl(
     androidIcon: 'drawable/ic_play',
-    label: 'Close',
+    label: 'Play',
     action: MediaAction.play,
   );
 
   static const _pauseControl = MediaControl(
     androidIcon: 'drawable/ic_pause',
-    label: 'Close',
+    label: 'Pause',
     action: MediaAction.pause,
   );
 
   static const _nextControl = MediaControl(
     androidIcon: 'drawable/ic_next',
-    label: 'Close',
+    label: 'Next',
     action: MediaAction.skipToNext,
   );
 
   static const _previousControl = MediaControl(
     androidIcon: 'drawable/ic_previous',
-    label: 'Close',
+    label: 'Previous',
     action: MediaAction.skipToPrevious,
   );
 
@@ -76,53 +83,53 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> _loadEmptyPlaylist() async {
     try {
-      // ربط القائمة بالمشغل مرة واحدة فقط عند البدء
+      // Bind the playlist to the player only once at startup
       await _player.setAudioSource(_playlist);
     } catch (e) {
       debugPrint("Error loading audio source: $e");
     }
   }
 
-  // --- 1. التحكم في القائمة (Queue Management) ---
+  // --- 1. Queue Management ---
 
   @override
   Future<void> addQueueItems(List<MediaItem> mediaItems) async {
-    // تحويل MediaItems إلى مصادر صوتية
+    // Convert MediaItems to audio sources
     final audioSource = mediaItems.map(_createAudioSource).toList();
 
-    // إضافة العناصر لقائمة التشغيل الحية (دون إيقاف المشغل)
+    // Add items to the live playlist (without stopping the player)
     await _playlist.addAll(audioSource);
 
-    // تحديث القائمة في AudioService (لأغراض العرض في النظام)
+    // Update the queue in AudioService (for system display purposes)
     final newQueue = queue.value..addAll(mediaItems);
     queue.add(newQueue);
   }
 
   @override
-  Future<void> updateQueue(List<MediaItem> queueItems) async {
-    // عند استبدال القائمة بالكامل (مثلاً تشغيل ألبوم جديد)
-    final audioSource = queueItems.map(_createAudioSource).toList();
+  Future<void> updateQueue(List<MediaItem> queue) async {
+    // When replacing the entire queue (e.g., playing a new album)
+    final audioSource = queue.map(_createAudioSource).toList();
 
-    // مسح القائمة الحالية وإضافة الجديدة
+    // Clear current queue and add the new one
     await _playlist.clear();
     await _playlist.addAll(audioSource);
 
-    // تحديث واجهة النظام
-    queue.add(queueItems);
+    // Update system UI
+    this.queue.add(queue);
   }
 
-  // دالة المساعدة كما هي، ممتازة
+  // Helper function
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
     final String? sourceUri = mediaItem.extras?['uri'] ?? mediaItem.extras?['url'];
     final uriToUse = sourceUri ?? mediaItem.id;
 
     return AudioSource.uri(
       Uri.parse(uriToUse),
-      tag: mediaItem, // مهم جداً لاسترجاع البيانات
+      tag: mediaItem, // Very important for retrieving data
     );
   }
 
-  // --- 2. التحكم في التشغيل (Playback Controls) ---
+  // --- 2. Playback Controls ---
 
   @override
   Future<void> play() => _player.play();
@@ -149,15 +156,15 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> skipToQueueItem(int index) async {
     if (index < 0 || index >= _playlist.length) return;
 
-    // الانتقال للأغنية المحددة وتشغيلها
-    // ملاحظة: إذا كان المشغل متوقفاً، seek وحده لا يقوم بالتشغيل، لذا نضيف play
+    // Seek to the specific song and play it
+    // Note: If the player is stopped, seek alone doesn't play, so we add play()
     await _player.seek(Duration.zero, index: index);
     if (!_player.playing) {
       await _player.play();
     }
   }
 
-  // --- 3. ربط الأحداث (Streams & Listeners) ---
+  // --- 3. Streams & Listeners ---
 
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
@@ -165,18 +172,23 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       playbackState.add(playbackState.value.copyWith(
         controls: [
-          _favortieSolidControl,
+          isFavorite ? _favortieOutlinedControl : _favortieSolidControl,
           _previousControl,
           if (playing) _pauseControl else _playControl,
           _nextControl,
           _closeControl,
         ],
-        // هذه الأزرار تظهر في إشعار الأندرويد المصغر
+        // These buttons appear in the Android compact notification
         androidCompactActionIndices: const [1, 2, 3],
         systemActions: const {
+          MediaAction.play,
+          MediaAction.pause,
+          MediaAction.skipToNext,
+          MediaAction.skipToPrevious,
           MediaAction.seek,
           MediaAction.seekForward,
           MediaAction.seekBackward,
+          MediaAction.stop,
         },
         processingState: const {
           ProcessingState.idle: AudioProcessingState.idle,
@@ -197,43 +209,50 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // Favorite Action
   @override
   Future<void> customAction(String name, [Map<String, dynamic>? extras]) async {
-    if (name == 'action_favorite') {
-      // قم بتنفيذ منطق الإضافة للمفضلة هنا
-      debugPrint("تمت الإضافة للمفضلة");
+    if (name == actionAddFavorite) {
+      isFavorite = true;
 
-      // ملاحظة: لتغيير الأيقونة (مثلاً من قلب فارغ لقلب ممتلئ)،
-      // ستحتاج لمنطق إضافي لتحديث playbackState وتغيير الزر في قائمة controls
+      // Note: To change the icon (e.g., from an outlined heart to a solid heart),
+      // you will need additional logic to update playbackState and change the button in the controls list
+      return;
+    }
+    if (name == actionRemoveFavorite) {
+      isFavorite = false;
+
+      // Note: To change the icon (e.g., from an outlined heart to a solid heart),
+      // you will need additional logic to update playbackState and change the button in the controls list
+      return;
     }
   }
 
   void _listenToCurrentSong() {
-    // just_audio يغير الـ currentIndex تلقائياً عند انتهاء الأغنية
+    // just_audio changes currentIndex automatically when a song finishes
     _player.currentIndexStream.listen((index) {
       final currentQueue = queue.value;
       if (index != null && index < currentQueue.length) {
-        // تحديث الميديا الحالية في النظام (ليظهر الاسم والصورة في الإشعار وشاشة القفل)
+        // Update current media in the system (to show name and image in notification and lock screen)
         mediaItem.add(currentQueue[index]);
       }
     });
   }
 
-  // هذا Listener إضافي مهم للتأكد من أن ترتيب القائمة صحيح
+  // This is an important additional listener to ensure the queue order is correct
   void _listenToSequenceState() {
     _player.sequenceStateStream.listen((SequenceState? sequenceState) {
       final sequence = sequenceState?.effectiveSequence;
       if (sequence == null || sequence.isEmpty) return;
 
-      // استخراج الـ Tags (MediaItems) من القائمة الحالية في just_audio
+      // Extract Tags (MediaItems) from the current list in just_audio
       final items = sequence.map((source) => source.tag as MediaItem).toList();
 
-      // تحديث الـ Queue فقط إذا اختلف الترتيب (مثلاً عند تفعيل الـ Shuffle)
-      // queue.add(items);
+      // Update the Queue only if the order changes (e.g., when Shuffle is enabled)
+      queue.add(items);
     });
   }
 
   void _listenToCurrentPosition() {
-    // الاستماع لموقع الأغنية الحالي وتحديثه في AudioService
-    // هذا يساعد الواجهة الأمامية (UI) على تحديث الـ Slider بسلاسة
+    // Listen to the current song position and update it in AudioService
+    // This helps the frontend (UI) update the Slider smoothly
     _player.positionStream.listen((position) {
       final oldState = playbackState.value;
       playbackState.add(oldState.copyWith(updatePosition: position));
