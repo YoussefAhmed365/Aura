@@ -44,10 +44,23 @@ class PlayerState extends Equatable {
   List<Object?> get props => [
         currentSong,
         currentIndex,
-        queue,
+        _QueueWrapper(queue),
         isPlaying,
         position,
         duration,
         isBuffering,
       ];
+}
+
+class _QueueWrapper {
+  final List<MediaItem> queue;
+  const _QueueWrapper(this.queue);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is _QueueWrapper && identical(queue, other.queue));
+
+  @override
+  int get hashCode => identityHashCode(queue);
 }
