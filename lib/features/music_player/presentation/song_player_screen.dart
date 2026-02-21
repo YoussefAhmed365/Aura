@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 import 'package:aura/core/widgets/scroll_text_animation.dart';
+import 'package:aura/core/services/get_song_id.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:palette_generator_master/palette_generator_master.dart';
-
 import 'equalizer.dart';
 
 class SongPlayerScreen extends StatefulWidget {
@@ -63,7 +63,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
         _pageController.jumpToPage(state.currentIndex);
       }
 
-      final songId = _getSongId(state.currentSong?.id);
+      final songId = getSongId(state.currentSong?.id);
       if (songId != 0) {
         _updatePalette(songId, isDark);
         _currentSongId = songId;
@@ -144,17 +144,6 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
     return "${duration.inMinutes}:$seconds";
   }
 
-  // Extract Song ID for artwork
-  int _getSongId(String? songUri) {
-    if (songUri == null) return 0;
-    String idString = songUri.split('/').last;
-    try {
-      return int.parse(idString);
-    } catch (e) {
-      return 0;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     // This checks if the current theme is dark
@@ -178,7 +167,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
               listenWhen: (previous, current) => previous.currentSong?.id != current.currentSong?.id,
               listener: (context, state) {
                 final isDark = Theme.of(context).brightness == Brightness.dark;
-                final newId = _getSongId(state.currentSong?.id);
+                final newId = getSongId(state.currentSong?.id);
                 if (newId != _currentSongId) {
                   _currentSongId = newId;
                   _updatePalette(newId, isDark);
@@ -298,7 +287,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                             },
                             itemBuilder: (context, index) {
                               final song = state.queue[index];
-                              final songId = _getSongId(song.id);
+                              final songId = getSongId(song.id);
                               final isCurrent = index == state.currentIndex;
 
                               return AnimatedScale(

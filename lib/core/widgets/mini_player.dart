@@ -1,4 +1,5 @@
 import 'package:aura/core/widgets/scroll_text_animation.dart';
+import 'package:aura/core/services/get_song_id.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:aura/features/music_player/presentation/song_player_screen.dart';
 import 'package:flutter/material.dart';
@@ -36,15 +37,6 @@ class _MiniPlayerState extends State<MiniPlayer> with TickerProviderStateMixin {
     _rotationController.dispose();
     _slideBackController.dispose();
     super.dispose();
-  }
-
-  int _getSongId(String songId) {
-    String idString = songId.split('/').last;
-    try {
-      return int.parse(idString);
-    } catch (e) {
-      return 0;
-    }
   }
 
   void _showPlayer(BuildContext context) {
@@ -114,7 +106,7 @@ class _MiniPlayerState extends State<MiniPlayer> with TickerProviderStateMixin {
         final song = state.currentSong;
         final bool hasSong = song != null;
 
-        final songId = hasSong ? _getSongId(song.id) : 0;
+        final songId = hasSong ? getSongId(song.id) : 0;
         final songTitle = hasSong ? song.title : "Aura Music";
         final artist = hasSong ? (song.artist ?? "Unknown") : "Choose a song";
 
