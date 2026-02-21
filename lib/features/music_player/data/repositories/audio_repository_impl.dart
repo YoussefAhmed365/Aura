@@ -14,11 +14,20 @@ class AudioRepositoryImpl implements AudioRepository {
   Future<List<SongModel>> getSongs() async {
     bool permissionStatus = await _audioQuery.permissionsStatus();
     if (!permissionStatus) {
-      await _audioQuery.permissionsRequest();
+      permissionStatus = await _audioQuery.permissionsRequest();
+    }
+
+    if (!permissionStatus) {
+      return [];
     }
 
     // Get Songs
-    return await _audioQuery.querySongs(sortType: SongSortType.DATE_ADDED, orderType: OrderType.DESC_OR_GREATER, uriType: UriType.EXTERNAL, ignoreCase: true);
+    return await _audioQuery.querySongs(
+      sortType: SongSortType.DATE_ADDED,
+      orderType: OrderType.DESC_OR_GREATER,
+      uriType: UriType.EXTERNAL,
+      ignoreCase: true,
+    );
   }
 
   @override
