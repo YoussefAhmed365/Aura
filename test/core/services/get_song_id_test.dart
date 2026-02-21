@@ -17,5 +17,28 @@ void main() {
       final result = getSongId('content://media/invalid_id');
       expect(result, 0);
     });
+
+    test('يجب أن تُرجع 0 إذا كان النص فارغاً', () {
+      final result = getSongId('');
+      expect(result, 0);
+    });
+
+    test('يجب أن تُرجع الرقم إذا كان النص رقماً بدون مسار', () {
+      final result = getSongId('99');
+      expect(result, 99);
+    });
+
+    test('يجب أن تُرجع 0 إذا انتهى المسار بعلامة / فقط', () {
+      // split('/').last will be '', int.parse('') throws
+      final result = getSongId('content://media/');
+      expect(result, 0);
+    });
+
+    test('يجب أن تتعامل مع أرقام كبيرة جداً', () {
+      final result = getSongId(
+        'content://media/external/audio/media/2147483647',
+      );
+      expect(result, 2147483647);
+    });
   });
 }
