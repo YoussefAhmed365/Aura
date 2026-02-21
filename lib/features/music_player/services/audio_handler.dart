@@ -19,10 +19,10 @@ Future<AudioHandler> initAudioService() async {
 class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // 1. Use ConcatenatingAudioSource instead of a regular list
   // This allows for queue management (Gapless Playback) and automatic navigation
-  final _player = AudioPlayer();
+  final AudioPlayer _player;
 
   // ignore: deprecated_member_use
-  final _playlist = ConcatenatingAudioSource(children: []);
+  final ConcatenatingAudioSource _playlist;
 
   bool isFavorite = false;
 
@@ -43,37 +43,21 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     customAction: CustomMediaAction(name: actionRemoveFavorite),
   );
 
-  static const _closeControl = MediaControl(
-    androidIcon: 'drawable/ic_close',
-    label: 'Close',
-    action: MediaAction.stop,
-  );
+  static const _closeControl = MediaControl(androidIcon: 'drawable/ic_close', label: 'Close', action: MediaAction.stop);
 
-  static const _playControl = MediaControl(
-    androidIcon: 'drawable/ic_play',
-    label: 'Play',
-    action: MediaAction.play,
-  );
+  static const _playControl = MediaControl(androidIcon: 'drawable/ic_play', label: 'Play', action: MediaAction.play);
 
-  static const _pauseControl = MediaControl(
-    androidIcon: 'drawable/ic_pause',
-    label: 'Pause',
-    action: MediaAction.pause,
-  );
+  static const _pauseControl = MediaControl(androidIcon: 'drawable/ic_pause', label: 'Pause', action: MediaAction.pause);
 
-  static const _nextControl = MediaControl(
-    androidIcon: 'drawable/ic_next',
-    label: 'Next',
-    action: MediaAction.skipToNext,
-  );
+  static const _nextControl = MediaControl(androidIcon: 'drawable/ic_next', label: 'Next', action: MediaAction.skipToNext);
 
-  static const _previousControl = MediaControl(
-    androidIcon: 'drawable/ic_previous',
-    label: 'Previous',
-    action: MediaAction.skipToPrevious,
-  );
+  static const _previousControl = MediaControl(androidIcon: 'drawable/ic_previous', label: 'Previous', action: MediaAction.skipToPrevious);
 
-  MyAudioHandler() {
+  // ignore: deprecated_member_use
+  MyAudioHandler({AudioPlayer? player, ConcatenatingAudioSource? playlist})
+    : _player = player ?? AudioPlayer(),
+      // ignore: deprecated_member_use
+      _playlist = playlist ?? ConcatenatingAudioSource(children: []) {
     _loadEmptyPlaylist();
     _notifyAudioHandlerAboutPlaybackEvents();
     _listenToCurrentPosition();
@@ -170,39 +154,20 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _player.playbackEventStream.listen((PlaybackEvent event) {
       final playing = _player.playing;
 
-      playbackState.add(playbackState.value.copyWith(
-        controls: [
-          isFavorite ? _favortieOutlinedControl : _favortieSolidControl,
-          _previousControl,
-          if (playing) _pauseControl else _playControl,
-          _nextControl,
-          _closeControl,
-        ],
-        // These buttons appear in the Android compact notification
-        androidCompactActionIndices: const [1, 2, 3],
-        systemActions: const {
-          MediaAction.play,
-          MediaAction.pause,
-          MediaAction.skipToNext,
-          MediaAction.skipToPrevious,
-          MediaAction.seek,
-          MediaAction.seekForward,
-          MediaAction.seekBackward,
-          MediaAction.stop,
-        },
-        processingState: const {
-          ProcessingState.idle: AudioProcessingState.idle,
-          ProcessingState.loading: AudioProcessingState.loading,
-          ProcessingState.buffering: AudioProcessingState.buffering,
-          ProcessingState.ready: AudioProcessingState.ready,
-          ProcessingState.completed: AudioProcessingState.completed,
-        }[_player.processingState]!,
-        playing: playing,
-        updatePosition: _player.position,
-        bufferedPosition: _player.bufferedPosition,
-        speed: _player.speed,
-        queueIndex: event.currentIndex,
-      ));
+      playbackState.add(
+        playbackState.value.copyWith(
+          controls: [isFavorite ? _favortieOutlinedControl : _favortieSolidControl, _previousControl, if (playing) _pauseControl else _playControl, _nextControl, _closeControl],
+          // These buttons appear in the Android compact notification
+          androidCompactActionIndices: const [1, 2, 3],
+          systemActions: const {MediaAction.play, MediaAction.pause, MediaAction.skipToNext, MediaAction.skipToPrevious, MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward, MediaAction.stop},
+          processingState: const {ProcessingState.idle: AudioProcessingState.idle, ProcessingState.loading: AudioProcessingState.loading, ProcessingState.buffering: AudioProcessingState.buffering, ProcessingState.ready: AudioProcessingState.ready, ProcessingState.completed: AudioProcessingState.completed}[_player.processingState]!,
+          playing: playing,
+          updatePosition: _player.position,
+          bufferedPosition: _player.bufferedPosition,
+          speed: _player.speed,
+          queueIndex: event.currentIndex,
+        ),
+      );
     });
   }
 
