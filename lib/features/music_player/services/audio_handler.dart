@@ -19,10 +19,10 @@ Future<AudioHandler> initAudioService() async {
 class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // 1. Use ConcatenatingAudioSource instead of a regular list
   // This allows for queue management (Gapless Playback) and automatic navigation
-  final _player = AudioPlayer();
+  final AudioPlayer _player;
 
   // ignore: deprecated_member_use
-  final _playlist = ConcatenatingAudioSource(children: []);
+  final ConcatenatingAudioSource _playlist;
 
   bool isFavorite = false;
 
@@ -73,7 +73,10 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     action: MediaAction.skipToPrevious,
   );
 
-  MyAudioHandler() {
+  MyAudioHandler({AudioPlayer? player, ConcatenatingAudioSource? playlist})
+      : _player = player ?? AudioPlayer(),
+        // ignore: deprecated_member_use
+        _playlist = playlist ?? ConcatenatingAudioSource(children: []) {
     _loadEmptyPlaylist();
     _notifyAudioHandlerAboutPlaybackEvents();
     _listenToCurrentPosition();
