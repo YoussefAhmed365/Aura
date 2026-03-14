@@ -1,6 +1,7 @@
 import 'package:aura/core/di/injection.dart';
 import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/main.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -40,7 +41,9 @@ class _AppStartState extends State<AppStart> {
           _error = e.toString();
         });
       }
-      debugPrint("Initialization Error: $e");
+      if (kDebugMode) {
+        debugPrint("Initialization Error: $e");
+      }
     }
   }
 
@@ -65,7 +68,9 @@ class _AppStartState extends State<AppStart> {
         });
       }
     } catch (e) {
-      debugPrint("Permission Check Error: $e");
+      if (kDebugMode) {
+        debugPrint("Permission Check Error: $e");
+      }
       if (mounted) {
         setState(() {
           _error = "Error checking permissions: $e";
@@ -77,20 +82,77 @@ class _AppStartState extends State<AppStart> {
   @override
   Widget build(BuildContext context) {
     if (_error != null) {
+      if (kDebugMode) {
+        debugPrint("Error state: $_error");
+      }
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.dark,
         home: Scaffold(
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                "Error initializing app: $_error",
-                textAlign: TextAlign.center,
+          body: Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF2E1C4E), Colors.black],
+                  ),
+                ),
               ),
-            ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 80,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Initialization Error",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "An unexpected error occurred during initialization. Please try again.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.white70),
+                      ),
+                      const SizedBox(height: 30),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _error = null;
+                            _isInitialized = false;
+                            _isPermissionDenied = false;
+                          });
+                          _initApp();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                        ),
+                        child: const Text("Retry"),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -107,7 +169,11 @@ class _AppStartState extends State<AppStart> {
             children: [
               Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF2E1C4E), Colors.black],
+                  ),
                 ),
               ),
               Center(
@@ -116,11 +182,19 @@ class _AppStartState extends State<AppStart> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.folder_off, size: 80, color: Colors.white70),
+                      const Icon(
+                        Icons.folder_off,
+                        size: 80,
+                        color: Colors.white70,
+                      ),
                       const SizedBox(height: 20),
                       const Text(
                         "Permission Required",
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       const Text(
@@ -134,7 +208,10 @@ class _AppStartState extends State<AppStart> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
                         ),
                         child: const Text("Grant Permission"),
                       ),
@@ -159,12 +236,20 @@ class _AppStartState extends State<AppStart> {
             children: [
               Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF2E1C4E), Colors.black],
+                  ),
                 ),
               ),
 
               // Page Content
-              const SafeArea(child: Center(child: CircularProgressIndicator(color: Colors.white))),
+              const SafeArea(
+                child: Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              ),
             ],
           ),
         ),
