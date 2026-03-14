@@ -184,6 +184,24 @@ void main() {
 
       expect(audioHandler.isFavorite, false);
     });
+
+    test('handles extras parameter gracefully', () async {
+      expect(audioHandler.isFavorite, false);
+
+      await audioHandler.customAction(
+        MyAudioHandler.actionAddFavorite,
+        {'some_key': 'some_value'},
+      );
+
+      expect(audioHandler.isFavorite, true);
+
+      await audioHandler.customAction(
+        MyAudioHandler.actionRemoveFavorite,
+        {'some_key': 'some_value'},
+      );
+
+      expect(audioHandler.isFavorite, false);
+    });
   });
 
   group('Queue Management', () {
