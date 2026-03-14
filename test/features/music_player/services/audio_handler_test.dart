@@ -87,6 +87,18 @@ void main() {
       },
     );
 
+    test(
+      'does nothing when playlist is empty and index is 0',
+      () async {
+        when(() => mockPlaylist.length).thenReturn(0);
+
+        await audioHandler.skipToQueueItem(0);
+
+        verifyNever(() => mockPlayer.seek(any(), index: any(named: 'index')));
+        verifyNever(() => mockPlayer.play());
+      },
+    );
+
     test('calls seek and play when index is valid', () async {
       when(() => mockPlaylist.length).thenReturn(5);
       when(
