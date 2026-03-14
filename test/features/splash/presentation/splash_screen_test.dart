@@ -9,14 +9,20 @@ import 'package:get_it/get_it.dart';
 class MockOnAudioQuery extends Mock implements OnAudioQuery {}
 
 void main() {
-  setUp(() {
-    getIt.reset();
+  setUp(() async {
+    await getIt.reset();
     getIt.registerLazySingleton<OnAudioQuery>(() => MockOnAudioQuery());
   });
 
   testWidgets('renders generic error and retry button without sensitive error details', (tester) async {
-    // Note: To properly test this we would need to mock `configureDependencies()` or `_initApp`
-    // but the task mainly asks us to fix the vulnerability and there is no prior test.
-    // Given the simplicity, we'll run a minimal check.
+    final mockOnAudioQuery = getIt<OnAudioQuery>() as MockOnAudioQuery;
+    when(() => mockOnAudioQuery.permissionsStatus()).thenThrow(Exception('Sensitive Error Detail'));
+
+    await tester.pumpWidget(const MaterialApp(home: AppStart()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Initialization Error'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.textContaining('Sensitive Error Detail'), findsNothing);
   });
 }
