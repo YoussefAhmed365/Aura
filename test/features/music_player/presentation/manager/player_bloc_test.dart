@@ -70,18 +70,17 @@ void main() {
       when(() => song.uri).thenReturn('uri');
 
       blocTest<PlayerBloc, PlayerState>(
-        'PlayAllEvent calls updateQueue, skipToQueueItem and play',
+        'PlayAllEvent calls updateQueue and skipToQueueItem',
         build: () {
           when(() => mockAudioHandler.updateQueue(any())).thenAnswer((_) async {});
           when(() => mockAudioHandler.skipToQueueItem(any())).thenAnswer((_) async {});
-          when(() => mockAudioHandler.play()).thenAnswer((_) async {});
           return playerBloc;
         },
         act: (bloc) => bloc.add(PlayAllEvent(songs: [song], index: 0)),
         verify: (_) {
           verify(() => mockAudioHandler.updateQueue(any())).called(1);
           verify(() => mockAudioHandler.skipToQueueItem(0)).called(1);
-          verify(() => mockAudioHandler.play()).called(1);
+          verifyNever(() => mockAudioHandler.play());
         },
       );
 

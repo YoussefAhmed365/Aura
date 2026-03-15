@@ -57,6 +57,21 @@ void main() {
     when(() => mockPlayer.seekToNext()).thenAnswer((_) async {});
     when(() => mockPlayer.seekToPrevious()).thenAnswer((_) async {});
 
+    // Provide a dummy playingStream
+    when(() => mockPlayer.playingStream).thenAnswer((_) => const Stream.empty());
+
+    // Stub playbackEvent
+    when(() => mockPlayer.playbackEvent).thenReturn(PlaybackEvent(
+      processingState: ProcessingState.idle,
+      updateTime: DateTime.now(),
+      updatePosition: Duration.zero,
+      bufferedPosition: Duration.zero,
+      duration: null,
+      icyMetadata: null,
+      currentIndex: 0,
+      androidAudioSessionId: null,
+    ));
+
     // Stub playlist length default
     when(() => mockPlaylist.length).thenReturn(0);
     when(() => mockPlaylist.clear()).thenAnswer((_) async {});

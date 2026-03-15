@@ -62,9 +62,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     // تشغيل الأغنية المختارة
     await _audioHandler.skipToQueueItem(event.index);
 
-    // تأكد من بدء التشغيل
-    _audioHandler.play();
-
     // تحديث الحالة فوراً لتحسين استجابة الواجهة
     emit(state.copyWith(
       isPlaying: true,

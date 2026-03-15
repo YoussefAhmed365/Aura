@@ -164,8 +164,8 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   // تم فصل التحديث في دالة منفصلة لتجنب تكرار الكود
   void _broadcastState(PlaybackEvent? event) {
-    if (event == null) return;
     final playing = _player.playing;
+    final queueIndex = event?.currentIndex ?? playbackState.value.queueIndex;
 
     playbackState.add(
       playbackState.value.copyWith(
@@ -178,7 +178,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         updatePosition: _player.position,
         bufferedPosition: _player.bufferedPosition,
         speed: _player.speed,
-        queueIndex: event.currentIndex,
+        queueIndex: queueIndex,
       ),
     );
   }
