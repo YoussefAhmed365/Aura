@@ -52,4 +52,28 @@ class AudioRepositoryImpl implements AudioRepository {
       sortType: SongSortType.TITLE,
     );
   }
+
+  @override
+  Future<List<PlaylistModel>> getPlaylists() async {
+    return await _audioQuery.queryPlaylists();
+  }
+
+  @override
+  Future<List<SongModel>> getSongsByPlaylist(int playlistId) async {
+    return await _audioQuery.queryAudiosFrom(
+      AudiosFromType.PLAYLIST,
+      playlistId,
+      sortType: SongSortType.TITLE,
+    );
+  }
+
+  @override
+  Future<bool> createPlaylist(String name) async {
+    return await _audioQuery.createPlaylist(name);
+  }
+
+  @override
+  Future<bool> removePlaylist(int playlistId) async {
+    return await _audioQuery.removePlaylist(playlistId);
+  }
 }

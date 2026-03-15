@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:get_it/get_it.dart';
 
 class MockOnAudioQuery extends Mock implements OnAudioQuery {}
 

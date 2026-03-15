@@ -163,7 +163,12 @@ class AudioFromQuery : ViewModel() {
         withContext(Dispatchers.IO) {
             val songsFrom: ArrayList<MutableMap<String, Any?>> = ArrayList()
 
-            val cursor = resolver.query(pUri, songProjection(), null, null, sortType)
+            // We need to add [AUDIO_ID] to the projection.                                                                                                                    │
+            // This will help to get the real song id and not the member id.                                                                                                   │
+            val projection = songProjection().toMutableList()                                                                                                                  │
+            projection.add(MediaStore.Audio.Playlists.Members.AUDIO_ID)
+
+            val cursor = resolver.query(pUri, projection.toTypedArray(), null, null, sortType)
 
             Log.d(TAG, "Cursor count: ${cursor?.count}")
 
@@ -172,6 +177,11 @@ class AudioFromQuery : ViewModel() {
 
                 for (media in cursor.columnNames) {
                     tempData[media] = helper.loadSongItem(media, cursor)
+                }
+
+                // Fix for Playlists/Genres: Use AUDIO_ID instead of Member ID (_ID)                                                                                           │
+                if (tempData.containsKey("audio_id")) {                                                                                                                        │
+                    tempData["_id"] = tempData["audio_id"]                                                                                                                     │
                 }
 
                 //Get a extra information from audio, e.g: extension, uri, etc..

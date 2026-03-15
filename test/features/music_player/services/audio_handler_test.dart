@@ -6,8 +6,8 @@ import 'package:mocktail/mocktail.dart';
 
 class MockAudioPlayer extends Mock implements AudioPlayer {}
 
-// ignore: deprecated_member_use
 class MockConcatenatingAudioSource extends Mock
+    // ignore: deprecated_member_use
     implements ConcatenatingAudioSource {}
 
 class FakeAudioSource extends Fake implements AudioSource {}

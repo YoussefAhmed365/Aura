@@ -12,8 +12,9 @@ class SongListByEntity extends StatefulWidget {
   final int id;
   final String title;
   final bool isArtist;
+  final bool isPlaylist; // Added to support Playlist viewing seamlessly
 
-  const SongListByEntity({super.key, required this.id, required this.title, required this.isArtist});
+  const SongListByEntity({super.key, required this.id, required this.title, required this.isArtist, this.isPlaylist = false});
 
   @override
   State<SongListByEntity> createState() => _SongListByEntityState();
@@ -38,8 +39,8 @@ class _SongListByEntityState extends State<SongListByEntity> {
 
     if (isDarkMode) {
       background = Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [const Color(0xFF2E1C4E), Colors.black]),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
         ),
       );
     } else {
@@ -61,7 +62,14 @@ class _SongListByEntityState extends State<SongListByEntity> {
                       onPressed: () => Navigator.pop(context),
                       icon: Icon(Icons.keyboard_arrow_left_rounded, color: Theme.of(context).colorScheme.inverseSurface, size: 35),
                     ),
-                    Text(widget.title, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.inverseSurface, letterSpacing: 1.5)),
+                    Expanded(
+                      child: Text(
+                          widget.title,
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.inverseSurface, letterSpacing: 1.5)
+                      ),
+                    ),
                     IconButton(
                       onPressed: () {},
                       icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.inverseSurface),
@@ -72,8 +80,12 @@ class _SongListByEntityState extends State<SongListByEntity> {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 80),
                     child: FutureBuilder<List<SongModel>>(
-                      // You'll need to implement this method in your repository
-                      future: widget.isArtist ? getIt<AudioRepository>().getSongsByArtist(widget.id) : getIt<AudioRepository>().getSongsByAlbum(widget.id),
+                      // Switch easily between entities
+                      future: widget.isPlaylist
+                          ? getIt<AudioRepository>().getSongsByPlaylist(widget.id)
+                          : widget.isArtist
+                          ? getIt<AudioRepository>().getSongsByArtist(widget.id)
+                          : getIt<AudioRepository>().getSongsByAlbum(widget.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: CircularProgressIndicator());
@@ -81,7 +93,13 @@ class _SongListByEntityState extends State<SongListByEntity> {
                         if (snapshot.hasError || snapshot.data == null) {
                           return const Center(child: Text("Error loading songs"));
                         }
+
                         final songs = snapshot.data!;
+
+                        if (songs.isEmpty) {
+                          return const Center(child: Text("No songs available"));
+                        }
+
                         return ListView.builder(
                           itemCount: songs.length,
                           itemBuilder: (context, index) {
@@ -158,7 +176,7 @@ class _SongListByEntityState extends State<SongListByEntity> {
             ),
           ),
 
-          Positioned(bottom: -10, left: 0, right: 0, child: MiniPlayer()),
+          Positioned(bottom: MediaQuery.of(context).size.height * -0.86, left: 0, right: 0, child: const MiniPlayer()),
         ],
       ),
 
@@ -172,8 +190,6 @@ class _SongListByEntityState extends State<SongListByEntity> {
           destinations: const [
             NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
             NavigationDestination(icon: Icon(Icons.music_note_outlined), selectedIcon: Icon(Icons.music_note_rounded), label: 'Songs'),
-            // Removed and moved to Songs page
-            // NavigationDestination(icon: Icon(Icons.library_music_outlined), selectedIcon: Icon(Icons.library_music_rounded), label: 'Playlists'),
             NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search_rounded), label: 'Search'),
             NavigationDestination(icon: Icon(Icons.settings), selectedIcon: Icon(Icons.settings_rounded), label: 'Settings'),
           ],

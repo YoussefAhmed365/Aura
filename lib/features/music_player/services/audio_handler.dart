@@ -151,24 +151,36 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // --- 3. Streams & Listeners ---
 
   void _notifyAudioHandlerAboutPlaybackEvents() {
+    // الاستماع لأحداث المشغل الأساسية (الوقت، التحميل، الخ)
     _player.playbackEventStream.listen((PlaybackEvent event) {
-      final playing = _player.playing;
-
-      playbackState.add(
-        playbackState.value.copyWith(
-          controls: [isFavorite ? _favortieOutlinedControl : _favortieSolidControl, _previousControl, if (playing) _pauseControl else _playControl, _nextControl, _closeControl],
-          // These buttons appear in the Android compact notification
-          androidCompactActionIndices: const [1, 2, 3],
-          systemActions: const {MediaAction.play, MediaAction.pause, MediaAction.skipToNext, MediaAction.skipToPrevious, MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward, MediaAction.stop},
-          processingState: const {ProcessingState.idle: AudioProcessingState.idle, ProcessingState.loading: AudioProcessingState.loading, ProcessingState.buffering: AudioProcessingState.buffering, ProcessingState.ready: AudioProcessingState.ready, ProcessingState.completed: AudioProcessingState.completed}[_player.processingState]!,
-          playing: playing,
-          updatePosition: _player.position,
-          bufferedPosition: _player.bufferedPosition,
-          speed: _player.speed,
-          queueIndex: event.currentIndex,
-        ),
-      );
+      _broadcastState(event);
     });
+
+    // إضافة الاستماع لحالة التشغيل/الإيقاف (حل مشكلة الضغطتين للـ Pause)
+    _player.playingStream.listen((bool playing) {
+      _broadcastState(_player.playbackEvent);
+    });
+  }
+
+  // تم فصل التحديث في دالة منفصلة لتجنب تكرار الكود
+  void _broadcastState(PlaybackEvent? event) {
+    if (event == null) return;
+    final playing = _player.playing;
+
+    playbackState.add(
+      playbackState.value.copyWith(
+        controls: [isFavorite ? _favortieOutlinedControl : _favortieSolidControl, _previousControl, if (playing) _pauseControl else _playControl, _nextControl, _closeControl],
+        // These buttons appear in the Android compact notification
+        androidCompactActionIndices: const [1, 2, 3],
+        systemActions: const {MediaAction.play, MediaAction.pause, MediaAction.skipToNext, MediaAction.skipToPrevious, MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward, MediaAction.stop},
+        processingState: const {ProcessingState.idle: AudioProcessingState.idle, ProcessingState.loading: AudioProcessingState.loading, ProcessingState.buffering: AudioProcessingState.buffering, ProcessingState.ready: AudioProcessingState.ready, ProcessingState.completed: AudioProcessingState.completed}[_player.processingState]!,
+        playing: playing,
+        updatePosition: _player.position,
+        bufferedPosition: _player.bufferedPosition,
+        speed: _player.speed,
+        queueIndex: event.currentIndex,
+      ),
+    );
   }
 
   // Favorite Action
@@ -176,16 +188,12 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> customAction(String name, [Map<String, dynamic>? extras]) async {
     if (name == actionAddFavorite) {
       isFavorite = true;
-
-      // Note: To change the icon (e.g., from an outlined heart to a solid heart),
-      // you will need additional logic to update playbackState and change the button in the controls list
+      _broadcastState(_player.playbackEvent);
       return;
     }
     if (name == actionRemoveFavorite) {
       isFavorite = false;
-
-      // Note: To change the icon (e.g., from an outlined heart to a solid heart),
-      // you will need additional logic to update playbackState and change the button in the controls list
+      _broadcastState(_player.playbackEvent);
       return;
     }
   }

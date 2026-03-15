@@ -15,4 +15,16 @@ abstract class AudioRepository {
 
   // Get Songs By Album
   Future<List<SongModel>> getSongsByAlbum(int albumId);
+
+  // Get Playlists
+  Future<List<PlaylistModel>> getPlaylists();
+
+  // Get Songs By Playlist
+  Future<List<SongModel>> getSongsByPlaylist(int playlistId);
+
+  // Create Playlist
+  Future<bool> createPlaylist(String name);
+
+  // Remove Playlist
+  Future<bool> removePlaylist(int playlistId);
 }

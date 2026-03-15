@@ -7,6 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 part 'player_event.dart';
+
 part 'player_state.dart';
 
 @injectable
@@ -19,9 +20,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   StreamSubscription? _mediaItemSubscription;
   StreamSubscription? _queueSubscription;
 
-  PlayerBloc(this._audioHandler, {Stream<Duration>? positionStream})
-      : _positionStream = positionStream,
-        super(const PlayerState()) {
+  PlayerBloc(this._audioHandler, {@factoryParam Stream<Duration>? positionStream}) : _positionStream = positionStream, super(const PlayerState()) {
     // --- الاستماع للأحداث القادمة من UI ---
     on<PlayAllEvent>(_onPlayAll);
     on<PlayPauseEvent>(_onPlayPause);
@@ -45,16 +44,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final mediaItems = event.songs
         .map(
           (song) => MediaItem(
-            id: song.id.toString(), // استخدام المعرف الرقمي كـ ID لسهولة استرجاعه
+            id: song.id.toString(),
+            // استخدام المعرف الرقمي كـ ID لسهولة استرجاعه
             album: song.album ?? "Unknown Album",
             title: song.title,
             artist: song.artist ?? "Unknown Artist",
             duration: Duration(milliseconds: song.duration ?? 0),
             artUri: Uri.parse("content://media/external/audio/media/${song.id}/albumart"),
-            extras: {
-              'url': song.data,
-              'uri': song.uri,
-            }, 
+            extras: {'url': song.data, 'uri': song.uri},
           ),
         )
         .toList();
@@ -64,13 +61,27 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     // تشغيل الأغنية المختارة
     await _audioHandler.skipToQueueItem(event.index);
-    
+
     // تأكد من بدء التشغيل
     _audioHandler.play();
+
+    // تحديث الحالة فوراً لتحسين استجابة الواجهة
+    emit(state.copyWith(
+      isPlaying: true,
+      currentSong: mediaItems[event.index],
+      queue: mediaItems,
+      currentIndex: event.index,
+    ));
   }
 
   void _onPlayPause(PlayPauseEvent event, Emitter<PlayerState> emit) {
-    state.isPlaying ? _audioHandler.pause() : _audioHandler.play();
+    if (state.isPlaying) {
+      _audioHandler.pause();
+      emit(state.copyWith(isPlaying: false));
+    } else {
+      _audioHandler.play();
+      emit(state.copyWith(isPlaying: true));
+    }
   }
 
   void _onSeek(SeekEvent event, Emitter<PlayerState> emit) {
@@ -87,12 +98,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (mediaItem == null) return;
 
     final index = state.queue.indexWhere((item) => item.id == mediaItem.id);
-    
-    emit(state.copyWith(
-      currentSong: mediaItem, 
-      duration: mediaItem.duration ?? Duration.zero,
-      currentIndex: index != -1 ? index : state.currentIndex,
-    ));
+
+    emit(state.copyWith(currentSong: mediaItem, duration: mediaItem.duration ?? Duration.zero, currentIndex: index != -1 ? index : state.currentIndex));
   }
 
   void _onPlaybackStateUpdated(_PlaybackStateUpdated event, Emitter<PlayerState> emit) {
@@ -109,10 +116,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (mediaItem != null) {
       index = event.queue.indexWhere((item) => item.id == mediaItem.id);
     }
-    emit(state.copyWith(
-      queue: event.queue,
-      currentIndex: index != -1 ? index : 0,
-    ));
+    emit(state.copyWith(queue: event.queue, currentIndex: index != -1 ? index : 0));
   }
 
   // --- المراقبة (The Bridge) ---

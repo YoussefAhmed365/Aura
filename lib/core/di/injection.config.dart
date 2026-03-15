@@ -9,6 +9,8 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'dart:async' as _i687;
+
 import 'package:audio_service/audio_service.dart' as _i87;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
@@ -43,14 +45,17 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i501.AudioPlayer>(() => registerModule.audioPlayer);
     gh.lazySingleton<_i859.OnAudioQuery>(() => registerModule.onAudioQuery);
-    gh.factory<_i330.PlayerBloc>(
-      () => _i330.PlayerBloc(gh<_i87.AudioHandler>()),
+    gh.factory<_i407.ThemeCubit>(
+      () => _i407.ThemeCubit(gh<_i460.SharedPreferences>()),
+    );
+    gh.factoryParam<_i330.PlayerBloc, _i687.Stream<Duration>?, dynamic>(
+      (positionStream, _) => _i330.PlayerBloc(
+        gh<_i87.AudioHandler>(),
+        positionStream: positionStream,
+      ),
     );
     gh.lazySingleton<_i889.AudioRepository>(
       () => _i398.AudioRepositoryImpl(gh<_i859.OnAudioQuery>()),
-    );
-    gh.factory<_i407.ThemeCubit>(
-      () => _i407.ThemeCubit(gh<_i460.SharedPreferences>()),
     );
     return this;
   }
