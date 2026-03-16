@@ -68,15 +68,21 @@ class _MiniPlayerState extends State<MiniPlayer> with TickerProviderStateMixin {
 
   // دالة لإعادة المشغل لمكانه بانسيابية
   void _snapBack() {
+    _slideBackController.stop();
+
     _slideBackAnimation = Tween<double>(begin: _dragOffset, end: 0.0).animate(CurvedAnimation(parent: _slideBackController, curve: Curves.easeOut));
 
-    _slideBackAnimation.addListener(() {
-      setState(() {
-        _dragOffset = _slideBackAnimation.value;
-      });
-    });
+    // Remove old listeners to prevent memory leaks and multiple calls
+    _slideBackAnimation.removeListener(_updateDragOffset);
+    _slideBackAnimation.addListener(_updateDragOffset);
 
     _slideBackController.forward(from: 0.0);
+  }
+
+  void _updateDragOffset() {
+    setState(() {
+      _dragOffset = _slideBackAnimation.value;
+    });
   }
 
   @override
@@ -116,6 +122,7 @@ class _MiniPlayerState extends State<MiniPlayer> with TickerProviderStateMixin {
           },
           // 1. تتبع حركة الإصبع بدقة
           onVerticalDragUpdate: (details) {
+            _slideBackController.stop(); // Stop animation if user touches again
             setState(() {
               // نسمح فقط بالسحب لأعلى (قيم سالبة)
               double newOffset = _dragOffset + details.delta.dy;

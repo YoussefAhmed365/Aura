@@ -21,6 +21,32 @@ class SongListByEntity extends StatefulWidget {
 }
 
 class _SongListByEntityState extends State<SongListByEntity> {
+  late Future<List<SongModel>> _songsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFuture();
+  }
+
+  @override
+  void didUpdateWidget(covariant SongListByEntity oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id ||
+        oldWidget.isPlaylist != widget.isPlaylist ||
+        oldWidget.isArtist != widget.isArtist) {
+      _loadFuture();
+    }
+  }
+
+  void _loadFuture() {
+    _songsFuture = widget.isPlaylist
+        ? getIt<AudioRepository>().getSongsByPlaylist(widget.id)
+        : widget.isArtist
+            ? getIt<AudioRepository>().getSongsByArtist(widget.id)
+            : getIt<AudioRepository>().getSongsByAlbum(widget.id);
+  }
+
   void _onBottomNavTapped(int index) {
     // Navigation logic
     Navigator.of(context).pushReplacement(
@@ -81,11 +107,7 @@ class _SongListByEntityState extends State<SongListByEntity> {
                     padding: const EdgeInsets.only(bottom: 80),
                     child: FutureBuilder<List<SongModel>>(
                       // Switch easily between entities
-                      future: widget.isPlaylist
-                          ? getIt<AudioRepository>().getSongsByPlaylist(widget.id)
-                          : widget.isArtist
-                          ? getIt<AudioRepository>().getSongsByArtist(widget.id)
-                          : getIt<AudioRepository>().getSongsByAlbum(widget.id),
+                      future: _songsFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: CircularProgressIndicator());
