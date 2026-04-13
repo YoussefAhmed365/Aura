@@ -13,19 +13,26 @@ class SettingsPage extends StatelessWidget {
       children: [
         CustomScrollView(
           slivers: [
-            const SliverToBoxAdapter(child: SizedBox(height: 140)), // For TopBar
-
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 140),
+            ), // For TopBar
             // Theme Section
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Text("Appearance", style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.primary)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                child: Text(
+                  "Appearance",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
             ),
             SliverList(
-              delegate: SliverChildListDelegate([
-                _buildThemeTile(context),
-              ]),
+              delegate: SliverChildListDelegate([_buildThemeTile(context)]),
             ),
 
             const SliverToBoxAdapter(child: Divider(thickness: 0.5)),
@@ -33,8 +40,16 @@ class SettingsPage extends StatelessWidget {
             // Playback Section (Visual Only)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Text("Playback", style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.primary)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                child: Text(
+                  "Playback",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
             ),
             SliverList(
@@ -64,8 +79,16 @@ class SettingsPage extends StatelessWidget {
             // About Section
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Text("About", style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.primary)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                child: Text(
+                  "About",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
             ),
             SliverList(
@@ -79,12 +102,20 @@ class SettingsPage extends StatelessWidget {
               ]),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 100)), // Bottom padding
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 100),
+            ), // Bottom padding
           ],
         ),
 
         // Top Bar
-        const Positioned(top: 20, left: 20, right: 20, height: 100, child: SettingsTopBar()),
+        const Positioned(
+          top: 20,
+          left: 20,
+          right: 20,
+          height: 100,
+          child: SettingsTopBar(),
+        ),
       ],
     );
   }
@@ -125,43 +156,35 @@ class SettingsPage extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text("Choose Theme"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<ThemeMode>(
-                title: const Text("System Default"),
-                value: ThemeMode.system,
-                // ignore: deprecated_member_use
-                groupValue: currentMode,
-                // ignore: deprecated_member_use
-                onChanged: (value) {
-                  context.read<ThemeCubit>().setTheme(value!);
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                title: const Text("Light Mode"),
-                value: ThemeMode.light,
-                // ignore: deprecated_member_use
-                groupValue: currentMode,
-                // ignore: deprecated_member_use
-                onChanged: (value) {
-                  context.read<ThemeCubit>().setTheme(value!);
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                title: const Text("Dark Mode"),
-                value: ThemeMode.dark,
-                // ignore: deprecated_member_use
-                groupValue: currentMode,
-                // ignore: deprecated_member_use
-                onChanged: (value) {
-                  context.read<ThemeCubit>().setTheme(value!);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+          content: RadioGroup<ThemeMode>(
+            groupValue: currentMode,
+            onChanged: (value) {
+              if (value != null) {
+                context.read<ThemeCubit>().setTheme(value);
+                Navigator.pop(context);
+              }
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: ThemeMode.values.map((mode) {
+                String title;
+                switch (mode) {
+                  case ThemeMode.system:
+                    title = "System Default";
+                    break;
+                  case ThemeMode.light:
+                    title = "Light Mode";
+                    break;
+                  case ThemeMode.dark:
+                    title = "Dark Mode";
+                    break;
+                }
+                return RadioListTile<ThemeMode>(
+                  title: Text(title),
+                  value: mode,
+                );
+              }).toList(),
+            ),
           ),
         );
       },
