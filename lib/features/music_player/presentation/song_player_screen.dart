@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:palette_generator_master/palette_generator_master.dart';
 import 'equalizer.dart';
+import 'package:aura/core/di/injection.dart';
 
 class SongPlayerScreen extends StatefulWidget {
   const SongPlayerScreen({super.key});
@@ -55,7 +56,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
 
       final songId = getSongId(state.currentSong?.id);
       if (songId != 0) {
-        _updatePalette(songId, isDark);
+        _updatePalette(songId, isDark, getIt<OnAudioQuery>());
         _currentSongId = songId;
       }
     });
@@ -67,8 +68,8 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   }
 
   // Function to extract dominant color from song artwork
-  Future<void> _updatePalette(int songId, bool isDarkTheme) async {
-    final OnAudioQuery audioQuery = OnAudioQuery();
+  Future<void> _updatePalette(int songId, bool isDarkTheme, OnAudioQuery audioQuery) async {
+
     try {
       // 1. Get image as Bytes
       final Uint8List? artworkBytes = await audioQuery.queryArtwork(songId, ArtworkType.AUDIO);
@@ -159,7 +160,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                 final newId = getSongId(state.currentSong?.id);
                 if (newId != _currentSongId) {
                   _currentSongId = newId;
-                  _updatePalette(newId, isDark);
+                  _updatePalette(newId, isDark, getIt<OnAudioQuery>());
                 }
               },
               child: AnimatedContainer(
