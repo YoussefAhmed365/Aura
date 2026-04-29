@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/di/injection.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/tob_bar.dart';
 import 'features/main_wrapper.dart';
 import 'features/music_player/presentation/manager/player_bloc.dart';
 import 'features/settings/presentation/manager/theme_cubit.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
         // Request "GetIt" to give a copy of "Bloc"
         BlocProvider(create: (_) => getIt<PlayerBloc>()),
         BlocProvider(create: (_) => getIt<ThemeCubit>()),
+        BlocProvider(create: (_) => NavigationCubit()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {

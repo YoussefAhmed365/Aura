@@ -4,9 +4,13 @@ import 'package:aura/features/search/presentation/search_page.dart';
 import 'package:aura/features/settings/presentation/settings_page.dart';
 import 'package:aura/features/songs/presentation/songs_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../core/widgets/tob_bar.dart';
 
 class MainWrapperPage extends StatefulWidget {
   final int? index;
+
   const MainWrapperPage({super.key, this.index});
 
   @override
@@ -48,11 +52,7 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
 
     // Animate the PageView to the new index
     if (_pageController.hasClients) {
-      _pageController.animateToPage(
-          index,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut
-      );
+      _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     }
   }
 
@@ -78,39 +78,42 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
       background = Container(color: Colors.white);
     }
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Background Color
-          background,
+    return BlocBuilder<NavigationCubit, int>(
+      builder: (context, currentIndex) {
+        // Sync PageController and NavigationBar with 'currentIndex'
+        return Scaffold(
+          body: Stack(
+            children: [
+              // Background Color
+              background,
 
-          // Page Content
-          SafeArea(
-            child: PageView(controller: _pageController, onPageChanged: _onPageChanged, physics: const PageScrollPhysics(), children: const [HomePage(), SongsPage(), SearchPage(), SettingsPage()]),
+              // Page Content
+              SafeArea(
+                child: PageView(controller: _pageController, onPageChanged: _onPageChanged, physics: const PageScrollPhysics(), children: const [HomePage(), SongsPage(), SearchPage(), SettingsPage()]),
+              ),
+
+              // Mini Player
+              Positioned(bottom: MediaQuery.of(context).size.height * -0.86, left: 0, right: 0, child: MiniPlayer()),
+            ],
           ),
 
-          // Mini Player
-          Positioned(bottom: MediaQuery.of(context).size.height * -0.86, left: 0, right: 0, child: MiniPlayer()),
-        ],
-      ),
-
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: _onBottomNavTapped,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
-            NavigationDestination(icon: Icon(Icons.music_note_outlined), selectedIcon: Icon(Icons.music_note_rounded), label: 'Songs'),
-            // Removed and moved to Songs page
-            // NavigationDestination(icon: Icon(Icons.library_music_outlined), selectedIcon: Icon(Icons.library_music_rounded), label: 'Playlists'),
-            NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search_rounded), label: 'Search'),
-            NavigationDestination(icon: Icon(Icons.settings), selectedIcon: Icon(Icons.settings_rounded), label: 'Settings'),
-          ],
-        ),
-      ),
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          bottomNavigationBar: ClipRRect(
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+            child: NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: _onBottomNavTapped,
+              labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+              destinations: const [
+                NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
+                NavigationDestination(icon: Icon(Icons.music_note_outlined), selectedIcon: Icon(Icons.music_note_rounded), label: 'Songs'),
+                NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search_rounded), label: 'Search'),
+                NavigationDestination(icon: Icon(Icons.settings), selectedIcon: Icon(Icons.settings_rounded), label: 'Settings'),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

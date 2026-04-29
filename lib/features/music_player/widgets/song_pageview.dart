@@ -78,6 +78,7 @@ class _SongPageviewState extends State<SongPageview> {
         return SizedBox(
           height: MediaQuery.of(context).size.height * 0.43,
           child: PageView.builder(
+            clipBehavior: Clip.none,
             controller: _pageController,
             itemCount: state.queue.length,
             onPageChanged: (index) {

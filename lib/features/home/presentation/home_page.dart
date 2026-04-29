@@ -1,68 +1,24 @@
-import 'package:aura/features/home/widgets/top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+
+import '../../../core/widgets/tob_bar.dart';
 
 class PlaylistModel {
   final String name;
   final int songs;
   final ImageProvider imageProvider;
 
-  const PlaylistModel({
-    required this.name,
-    required this.songs,
-    required this.imageProvider,
-  });
+  const PlaylistModel({required this.name, required this.songs, required this.imageProvider});
 }
 
-final List<PlaylistModel> playlists = [
-  const PlaylistModel(
-    imageProvider: AssetImage("assets/images/cover-1.jpg"),
-    name: "Chill Hits",
-    songs: 13,
-  ),
-  const PlaylistModel(
-    imageProvider: AssetImage("assets/images/cover-2.jpg"),
-    name: "My Playlist",
-    songs: 54,
-  ),
-  const PlaylistModel(
-    imageProvider: AssetImage("assets/images/cover-3.jpg"),
-    name: "Rock",
-    songs: 27,
-  ),
-];
+final List<PlaylistModel> playlists = [const PlaylistModel(imageProvider: AssetImage("assets/images/cover-1.jpg"), name: "Chill Hits", songs: 13), const PlaylistModel(imageProvider: AssetImage("assets/images/cover-2.jpg"), name: "My Playlist", songs: 54), const PlaylistModel(imageProvider: AssetImage("assets/images/cover-3.jpg"), name: "Rock", songs: 27)];
 
 final List<Map<String, dynamic>> favorites = [
-  {
-    "name": "Faded",
-    "author": "Alan Walker",
-    "album": "Alan Walker",
-    "duration": "3:32",
-  },
-  {
-    "name": "Blinding Lights",
-    "author": "The Weeknd",
-    "album": null,
-    "duration": "3:20",
-  },
-  {
-    "name": "Shape of You",
-    "author": "Ed Sheeran",
-    "album": "Ed Sheeran",
-    "duration": "3:53",
-  },
-  {
-    "name": "Someone You Loved",
-    "author": "Lewis Capaldi",
-    "album": "Lewis Capaldi",
-    "duration": "3:02",
-  },
-  {
-    "name": "Dance Monkey",
-    "author": "Tones and I",
-    "album": null,
-    "duration": "3:29",
-  },
+  {"name": "Faded", "author": "Alan Walker", "album": "Alan Walker", "duration": "3:32"},
+  {"name": "Blinding Lights", "author": "The Weeknd", "album": null, "duration": "3:20"},
+  {"name": "Shape of You", "author": "Ed Sheeran", "album": "Ed Sheeran", "duration": "3:53"},
+  {"name": "Someone You Loved", "author": "Lewis Capaldi", "album": "Lewis Capaldi", "duration": "3:02"},
+  {"name": "Dance Monkey", "author": "Tones and I", "album": null, "duration": "3:29"},
 ];
 
 class HomePage extends StatefulWidget {
@@ -94,12 +50,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
     return Stack(
       children: [
+
         // Page Content
         CustomScrollView(
           slivers: [
@@ -112,7 +65,7 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Your Mix", style: textTheme.titleLarge),
+                    Text("Your Mix", style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -139,21 +92,13 @@ class _HomePageState extends State<HomePage> {
                               height: 150,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
-                                image: DecorationImage(
-                                  image: playlists[index].imageProvider,
-                                  fit: BoxFit.cover,
-                                ),
+                                image: DecorationImage(image: playlists[index].imageProvider, fit: BoxFit.cover),
                               ),
                             ),
                             const SizedBox(height: 10),
                             Text(playlists[index].name),
                             const SizedBox(height: 5),
-                            Text(
-                              "${playlists[index].songs} Songs",
-                              style: textTheme.bodySmall?.copyWith(
-                                color: Colors.grey,
-                              ),
-                            ),
+                            Text("${playlists[index].songs} Songs", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
                           ],
                         ),
                       );
@@ -172,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Favorites", style: textTheme.titleLarge),
+                    Text("Favorites", style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -183,81 +128,41 @@ class _HomePageState extends State<HomePage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final int itemIndex = index ~/ 2;
-                    if (index.isEven) {
-                      // Item
-                      final item = favorites[itemIndex];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.music_note_rounded,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        title: Text(
-                          item['name'] ?? 'Unknown Title',
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['author'] ?? 'Unknown Artist',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            if (item['album'] != null)
-                              Text(
-                                item['album'] as String,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant
-                                      .withValues(alpha: 0.7),
-                                ),
-                              ),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              item['duration'] ?? '--:--',
-                              style: textTheme.labelMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(width: 15),
-                            Icon(
-                              Icons.more_vert_rounded,
-                              color: colorScheme.onSurface,
-                            ),
-                          ],
-                        ),
-                        onTap: () {},
-                      );
-                    }
-                    // Separator
-                    return const Divider(
-                      thickness: 0.15,
-                      height: 10,
-                      color: Colors.grey,
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final int itemIndex = index ~/ 2;
+                  if (index.isEven) {
+                    // Item
+                    final item = favorites[itemIndex];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(8)),
+                        child: Icon(Icons.music_note_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
+                      title: Text(item['name'] ?? 'Unknown Title', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item['author'] ?? 'Unknown Artist', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          if (item['album'] != null) Text(item['album'] as String, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(item['duration'] ?? '--:--', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          const SizedBox(width: 15),
+                          Icon(Icons.more_vert_rounded, color: Theme.of(context).colorScheme.onSurface),
+                        ],
+                      ),
+                      onTap: () {},
                     );
-                  },
-                  childCount: favorites.isNotEmpty
-                      ? favorites.length * 2 - 1
-                      : 0,
-                ),
+                  }
+                  // Separator
+                  return const Divider(thickness: 0.15, height: 10, color: Colors.grey);
+                }, childCount: favorites.isNotEmpty ? favorites.length * 2 - 1 : 0),
               ),
             ),
 
@@ -266,13 +171,7 @@ class _HomePageState extends State<HomePage> {
         ),
 
         // Top Bar
-        const Positioned(
-          top: 20,
-          left: 20,
-          right: 20,
-          height: 100,
-          child: TopBar(),
-        ),
+        const TopBar(title: "Aura", subtitle: "Good Evening", hasSearch: true),
       ],
     );
   }

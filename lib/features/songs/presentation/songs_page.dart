@@ -35,7 +35,7 @@ class _SongsPageState extends State<SongsPage> {
         children: [
           // Title
           Padding(
-            padding: const EdgeInsets.only(top: 10, left: 25),
+            padding: const EdgeInsets.only(top: 40, left: 25),
             child: Text(
               "Music list",
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, color: Theme.of(context).textTheme.bodyLarge?.color)

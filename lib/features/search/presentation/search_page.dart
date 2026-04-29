@@ -1,3 +1,4 @@
+import 'package:aura/core/widgets/tob_bar.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatelessWidget {
@@ -5,6 +6,11 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [Text("Aura - Search", style: Theme.of(context).textTheme.titleLarge)]);
+    return Stack(
+      children: [
+        // Top Bar
+        const TopBar(title: "Search", hasSearchBar: true),
+      ],
+    );
   }
 }

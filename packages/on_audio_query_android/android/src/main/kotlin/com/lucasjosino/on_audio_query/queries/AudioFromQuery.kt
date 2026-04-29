@@ -163,9 +163,9 @@ class AudioFromQuery : ViewModel() {
         withContext(Dispatchers.IO) {
             val songsFrom: ArrayList<MutableMap<String, Any?>> = ArrayList()
 
-            // We need to add [AUDIO_ID] to the projection.                                                                                                                    │
-            // This will help to get the real song id and not the member id.                                                                                                   │
-            val projection = songProjection().toMutableList()                                                                                                                  │
+            // We need to add [AUDIO_ID] to the projection.
+            // This will help to get the real song id and not the member id.
+            val projection = songProjection().toMutableList()
             projection.add(MediaStore.Audio.Playlists.Members.AUDIO_ID)
 
             val cursor = resolver.query(pUri, projection.toTypedArray(), null, null, sortType)
@@ -179,9 +179,9 @@ class AudioFromQuery : ViewModel() {
                     tempData[media] = helper.loadSongItem(media, cursor)
                 }
 
-                // Fix for Playlists/Genres: Use AUDIO_ID instead of Member ID (_ID)                                                                                           │
-                if (tempData.containsKey("audio_id")) {                                                                                                                        │
-                    tempData["_id"] = tempData["audio_id"]                                                                                                                     │
+                // Fix for Playlists/Genres: Use AUDIO_ID instead of Member ID (_ID)
+                if (tempData.containsKey("audio_id")) {
+                    tempData["_id"] = tempData["audio_id"]
                 }
 
                 //Get a extra information from audio, e.g: extension, uri, etc..
