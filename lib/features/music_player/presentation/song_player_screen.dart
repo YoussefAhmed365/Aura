@@ -19,6 +19,9 @@ class SongPlayerScreen extends StatefulWidget {
 }
 
 class _SongPlayerScreenState extends State<SongPlayerScreen> {
+  // Cache for extracted palette colors to avoid repeated image processing
+  static final Map<String, Color> _paletteCache = {};
+
   // Variables to control slider dragging behavior
   bool _isDragging = false;
   double _dragValue = 0.0;
@@ -69,9 +72,20 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
 
   // Function to extract dominant color from song artwork
   Future<void> _updatePalette(int songId, bool isDarkTheme, OnAudioQuery audioQuery) async {
+    final cacheKey = '${songId}_$isDarkTheme';
+
+    // 1. Check cache first
+    if (_paletteCache.containsKey(cacheKey)) {
+      if (mounted) {
+        setState(() {
+          _bgColors = [_paletteCache[cacheKey]!, isDarkTheme ? Colors.black : Colors.white];
+        });
+      }
+      return;
+    }
 
     try {
-      // 1. Get image as Bytes
+      // 2. Get image as Bytes
       final Uint8List? artworkBytes = await audioQuery.queryArtwork(songId, ArtworkType.AUDIO);
 
       if (artworkBytes != null) {
@@ -79,6 +93,9 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
         final Color? extractedColor = isDarkTheme ? (palette.darkMutedColor?.color ?? palette.dominantColor?.color ?? palette.darkVibrantColor?.color) : (palette.lightVibrantColor?.color ?? palette.vibrantColor?.color ?? palette.lightMutedColor?.color ?? palette.dominantColor?.color);
 
         if (extractedColor != null) {
+          // Store in cache
+          _paletteCache[cacheKey] = extractedColor;
+
           if (mounted) {
             setState(() {
               _bgColors = [extractedColor, isDarkTheme ? Colors.black : Colors.white];
