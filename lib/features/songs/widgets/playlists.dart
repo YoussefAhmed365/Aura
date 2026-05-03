@@ -29,44 +29,38 @@ class _PlaylistsState extends State<Playlists> {
   void _showCreatePlaylistDialog() {
     final TextEditingController controller = TextEditingController();
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text("Create Playlist"),
-            content: TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                hintText: "Enter playlist name",
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              autofocus: true,
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text("Create Playlist"),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: "Enter playlist name",
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Cancel"),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  if (controller.text.trim().isNotEmpty) {
-                    await getIt<AudioRepository>().createPlaylist(controller.text.trim());
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      _fetchPlaylists(); // Refresh List
-                    }
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+            FilledButton(
+              onPressed: () async {
+                if (controller.text.trim().isNotEmpty) {
+                  await getIt<AudioRepository>().createPlaylist(controller.text.trim());
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    _fetchPlaylists(); // Refresh List
                   }
-                },
-                child: const Text("Create"),
-              ),
-            ],
-          );
-        }
+                }
+              },
+              child: const Text("Create"),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -90,15 +84,9 @@ class _PlaylistsState extends State<Playlists> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).colorScheme.primary.withAlpha(100),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      )
-                    ]
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.primary.withAlpha(100), blurRadius: 10, offset: const Offset(0, 4))],
                 ),
                 child: Icon(Icons.add_rounded, color: Theme.of(context).colorScheme.onPrimary, size: 30),
               ),
@@ -109,18 +97,10 @@ class _PlaylistsState extends State<Playlists> {
                   children: [
                     Text(
                       "Create Playlist",
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      "Build your own custom mix",
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary.withAlpha(150),
-                      ),
-                    ),
+                    Text("Build your own custom mix", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary.withAlpha(150))),
                   ],
                 ),
               ),
@@ -139,35 +119,24 @@ class _PlaylistsState extends State<Playlists> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SongListByEntity(
-                id: playlist.id,
-                title: playlist.playlist,
-                isArtist: false,
-                isPlaylist: true,
-              ),
+              builder: (context) => SongListByEntity(id: playlist.id, title: playlist.playlist, isArtist: false, isPlaylist: true),
             ),
           ).then((_) => _fetchPlaylists()); // Refresh in case songs were removed/added
         },
-        borderRadius: BorderRadius.circular(10),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: QueryArtworkWidget(
-                id: playlist.id,
-                type: ArtworkType.PLAYLIST,
-                artworkWidth: 60,
-                artworkHeight: 60,
-                keepOldArtwork: true,
-                nullArtworkWidget: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(10)
-                  ),
-                  child: Icon(Icons.queue_music_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
+            QueryArtworkWidget(
+              id: playlist.id,
+              type: ArtworkType.PLAYLIST,
+              artworkWidth: 60,
+              artworkHeight: 60,
+              artworkBorder: BorderRadius.circular(10),
+              keepOldArtwork: true,
+              nullArtworkWidget: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(10)),
+                child: Icon(Icons.queue_music_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(width: 15),
@@ -226,7 +195,7 @@ class _PlaylistsState extends State<Playlists> {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.only(top: 10, bottom: 80),
+      padding: const EdgeInsets.only(top: 10),
       sliver: FutureBuilder<List<PlaylistModel>>(
         future: _playlistsFuture,
         builder: (context, snapshot) {
@@ -237,7 +206,7 @@ class _PlaylistsState extends State<Playlists> {
 
           return SliverList(
             delegate: SliverChildBuilderDelegate(
-                  (context, index) {
+              (context, index) {
                 // Item 0 is always the Create button
                 if (index == 0) {
                   return _buildCreateButton(context);
@@ -262,11 +231,11 @@ class _PlaylistsState extends State<Playlists> {
                   return Padding(
                     padding: const EdgeInsets.all(40.0),
                     child: Center(
-                        child: Text(
-                          "No playlists found!\nCreate one using the button above.",
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                        )
+                      child: Text(
+                        "No playlists found!\nCreate one using the button above.",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                      ),
                     ),
                   );
                 }
