@@ -34,7 +34,7 @@ class _SongPageviewState extends State<SongPageview> {
     final bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     return BlocConsumer<PlayerBloc, PlayerState>(
-      listenWhen: (previous, current) => previous.currentIndex != current.currentIndex,
+      listenWhen: (previous, current) => previous.currentIndex != current.currentIndex || previous.queue != current.queue,
       listener: (context, state) async {
         if (_pageController.hasClients) {
           final currentPage = _pageController.page?.round() ?? 0;
@@ -52,7 +52,6 @@ class _SongPageviewState extends State<SongPageview> {
               );
             }
 
-            await Future.delayed(const Duration(milliseconds: 100));
             _isProgrammaticScroll = false;
           }
         }

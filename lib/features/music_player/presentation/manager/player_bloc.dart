@@ -56,12 +56,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         )
         .toList();
 
-    // تحديث القائمة في المشغل
-    await _audioHandler.updateQueue(mediaItems);
-
-    // تشغيل الأغنية المختارة
-    await _audioHandler.skipToQueueItem(event.index);
-
     // تحديث الحالة فوراً لتحسين استجابة الواجهة
     emit(state.copyWith(
       isPlaying: true,
@@ -69,6 +63,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       queue: mediaItems,
       currentIndex: event.index,
     ));
+
+    // تحديث القائمة في المشغل
+    await _audioHandler.updateQueue(mediaItems);
+
+    // تشغيل الأغنية المختارة
+    await _audioHandler.skipToQueueItem(event.index);
   }
 
   void _onPlayPause(PlayPauseEvent event, Emitter<PlayerState> emit) {
@@ -113,7 +113,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (mediaItem != null) {
       index = event.queue.indexWhere((item) => item.id == mediaItem.id);
     }
-    emit(state.copyWith(queue: event.queue, currentIndex: index != -1 ? index : 0));
+    // Only update index if it was found in the new queue, otherwise preserve the current index
+    // Also, if event.queue and state.queue are different in contents, we should keep the state index
+    // unless we found the item.
+    emit(state.copyWith(queue: event.queue, currentIndex: index != -1 ? index : state.currentIndex));
   }
 
   // --- المراقبة (The Bridge) ---
