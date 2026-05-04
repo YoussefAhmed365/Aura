@@ -35,7 +35,9 @@ class QueryHelper {
             // Int
             "_id",
             "album_id",
-            "artist_id" -> {
+            "artist_id",
+            "audio_id",
+            "genre_id" -> {
                 // The [id] from Android >= 30/R is a [Long] instead of [Int].
                 if (Build.VERSION.SDK_INT >= 30) {
                     cursor.getLong(cursor.getColumnIndex(itemProperty))
@@ -48,7 +50,8 @@ class QueryHelper {
             "date_added",
             "date_modified",
             "duration",
-            "track" -> cursor.getInt(cursor.getColumnIndex(itemProperty))
+            "track",
+            "year" -> cursor.getInt(cursor.getColumnIndex(itemProperty))
             // Boolean
             "is_alarm",
             "is_audiobook",

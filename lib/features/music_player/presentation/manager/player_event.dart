@@ -7,10 +7,9 @@ abstract class PlayerEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// Click on song from the list to play
 class PlayAllEvent extends PlayerEvent {
-  final List<SongModel> songs; // The whole list
-  final int index; // Num of song
+  final List<SongModel> songs;
+  final int index;
 
   const PlayAllEvent({required this.songs, required this.index});
 
@@ -18,10 +17,8 @@ class PlayAllEvent extends PlayerEvent {
   List<Object> get props => [songs, index];
 }
 
-// Play & Pause
 class PlayPauseEvent extends PlayerEvent {}
 
-// Seek with slider
 class SeekEvent extends PlayerEvent {
   final Duration position;
 
@@ -31,12 +28,57 @@ class SeekEvent extends PlayerEvent {
   List<Object> get props => [position];
 }
 
-// Next & Previous
 class SkipNextEvent extends PlayerEvent {}
 
 class SkipPreviousEvent extends PlayerEvent {}
 
-// Internal events for AudioHandler updates
+// ----------------- أحداث الـ Queues الجديدة -----------------
+
+// حدث لتشغيل أغنية معينة من الـ Queue النشط حالياً
+class PlaySpecificQueueItemEvent extends PlayerEvent {
+  final int index;
+  const PlaySpecificQueueItemEvent(this.index);
+  @override
+  List<Object> get props => [index];
+}
+
+// حدث لتشغيل Queue محفوظ مسبقاً
+class PlaySavedQueueEvent extends PlayerEvent {
+  final String queueId;
+  const PlaySavedQueueEvent(this.queueId);
+  @override
+  List<Object> get props => [queueId];
+}
+
+class DeleteQueueEvent extends PlayerEvent {
+  final String queueId;
+  const DeleteQueueEvent(this.queueId);
+  @override
+  List<Object> get props => [queueId];
+}
+
+class RenameQueueEvent extends PlayerEvent {
+  final String queueId;
+  final String newName;
+  const RenameQueueEvent(this.queueId, this.newName);
+  @override
+  List<Object> get props => [queueId, newName];
+}
+
+class LoadSavedQueuesEvent extends PlayerEvent {}
+
+class ReorderQueueEvent extends PlayerEvent {
+  final int oldIndex;
+  final int newIndex;
+
+  const ReorderQueueEvent(this.oldIndex, this.newIndex);
+
+  @override
+  List<Object> get props => [oldIndex, newIndex];
+}
+
+// ------------------------------------------------------------
+
 class _MediaItemUpdated extends PlayerEvent {
   final MediaItem? mediaItem;
 

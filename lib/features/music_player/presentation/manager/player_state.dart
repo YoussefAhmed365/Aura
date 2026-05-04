@@ -1,13 +1,74 @@
 part of 'player_bloc.dart';
 
+// نموذج يمثل الـ Queue المخصص
+class CustomQueue extends Equatable {
+  final String id;
+  final String name;
+  final List<MediaItem> items;
+
+  const CustomQueue({
+    required this.id,
+    required this.name,
+    required this.items,
+  });
+
+  CustomQueue copyWith({String? name, List<MediaItem>? items}) {
+    return CustomQueue(
+      id: id,
+      name: name ?? this.name,
+      items: items ?? this.items,
+    );
+  }
+
+  // تحويل من وإلى JSON لحفظها في SharedPreferences
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'items': items.map((item) => {
+        'id': item.id,
+        'album': item.album,
+        'title': item.title,
+        'artist': item.artist,
+        'duration': item.duration?.inMilliseconds,
+        'artUri': item.artUri?.toString(),
+        'extras': item.extras,
+      }).toList(),
+    };
+  }
+
+  factory CustomQueue.fromJson(Map<String, dynamic> json) {
+    return CustomQueue(
+      id: json['id'],
+      name: json['name'],
+      items: (json['items'] as List).map((item) => MediaItem(
+        id: item['id'],
+        album: item['album'],
+        title: item['title'],
+        artist: item['artist'],
+        duration: item['duration'] != null ? Duration(milliseconds: item['duration']) : null,
+        artUri: item['artUri'] != null ? Uri.parse(item['artUri']) : null,
+        extras: item['extras'] != null ? Map<String, dynamic>.from(item['extras']) : null,
+      )).toList(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, name, items];
+}
+
 class PlayerState extends Equatable {
   final MediaItem? currentSong;
   final int currentIndex;
-  final List<MediaItem> queue;
+  final List<MediaItem> queue; // الـ Queue النشط حالياً
   final bool isPlaying;
-  final Duration position; // current position
-  final Duration duration; // duration of song
-  final bool isBuffering; // حالة التحميل (Buffering/Loading) مهمة للمستخدم
+  final Duration position;
+  final Duration duration;
+  final bool isBuffering;
+
+  // المتغيرات الجديدة الخاصة بإدارة الـ Queues
+  final List<CustomQueue> savedQueues;
+  final String? activeQueueId;
 
   const PlayerState({
     this.currentSong,
@@ -17,9 +78,10 @@ class PlayerState extends Equatable {
     this.position = Duration.zero,
     this.duration = Duration.zero,
     this.isBuffering = false,
+    this.savedQueues = const [],
+    this.activeQueueId,
   });
 
-  // دالة لنسخ الحالة مع تعديل بسيط (Copy with)
   PlayerState copyWith({
     MediaItem? currentSong,
     int? currentIndex,
@@ -28,6 +90,8 @@ class PlayerState extends Equatable {
     Duration? position,
     Duration? duration,
     bool? isBuffering,
+    List<CustomQueue>? savedQueues,
+    String? activeQueueId,
   }) {
     return PlayerState(
       currentSong: currentSong ?? this.currentSong,
@@ -37,17 +101,21 @@ class PlayerState extends Equatable {
       position: position ?? this.position,
       duration: duration ?? this.duration,
       isBuffering: isBuffering ?? this.isBuffering,
+      savedQueues: savedQueues ?? this.savedQueues,
+      activeQueueId: activeQueueId ?? this.activeQueueId,
     );
   }
 
   @override
   List<Object?> get props => [
-        currentSong,
-        currentIndex,
-        queue,
-        isPlaying,
-        position,
-        duration,
-        isBuffering,
-      ];
+    currentSong,
+    currentIndex,
+    queue,
+    isPlaying,
+    position,
+    duration,
+    isBuffering,
+    savedQueues,
+    activeQueueId,
+  ];
 }

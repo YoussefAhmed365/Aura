@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:aura/core/widgets/scroll_text_animation.dart';
 import 'package:aura/core/services/get_song_id.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
+import 'package:aura/features/music_player/widgets/current_queue_songs.dart';
+import 'package:aura/features/music_player/widgets/current_queues.dart';
 import 'package:aura/features/music_player/widgets/song_pageview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +28,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
   bool _isDragging = false;
   double _dragValue = 0.0;
   bool _showRemaining = false;
-
+  
   // Playback mode variables
   int _playModeController = 0;
   IconData _playModeIcon = Icons.arrow_forward_ios_rounded;
@@ -205,7 +207,52 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                             icon: Icon(Icons.keyboard_arrow_down_rounded, color: Theme.of(context).colorScheme.inverseSurface, size: 35),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            // Open a modal showing all created queues with their names
+                            onPressed: () {
+                              final PageController pageController = PageController(initialPage: 1);
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Theme.of(context).colorScheme.surface,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                                ),
+                                builder: (context) => DraggableScrollableSheet(
+                                  initialChildSize: 0.6,
+                                  minChildSize: 0.4,
+                                  maxChildSize: 0.9,
+                                  expand: false,
+                                  builder: (context, scrollController) => Column(
+                                    children: [
+                                      const SizedBox(height: 12),
+                                      Container(width: 40, height: 4, decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(102), borderRadius: BorderRadius.circular(2))),
+                                      Padding(padding: const EdgeInsets.all(16.0), child: Text("Queues", style: Theme.of(context).textTheme.titleLarge)),
+                                      // Show Queues with their names
+                                      BlocBuilder<PlayerBloc, PlayerState>(
+                                        builder: (context, state) {
+                                          return Expanded(
+                                            child: PageView(
+                                              controller: pageController,
+                                              children: [
+                                                Queues(
+                                                  scrollController: scrollController,
+                                                  pageController: pageController,
+                                                ),
+                                                CurrentQueueSongs(
+                                                  scrollController: scrollController,
+                                                  pageController: pageController,
+                                                  isNowPlayingClick: true,
+                                                )
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                             child: Text("Now Playing", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.inverseSurface, letterSpacing: 1.5)),
                           ),
                           IconButton(

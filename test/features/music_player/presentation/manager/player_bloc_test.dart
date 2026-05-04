@@ -6,16 +6,19 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // ignore: depend_on_referenced_packages
 import 'package:rxdart/rxdart.dart';
 
 // --- Mocks ---
 class MockAudioHandler extends Mock implements AudioHandler {}
 class MockSongModel extends Mock implements SongModel {}
+class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
   late PlayerBloc playerBloc;
   late MockAudioHandler mockAudioHandler;
+  late MockSharedPreferences mockPrefs;
 
   // Streams controllers to simulate AudioHandler updates
   late BehaviorSubject<MediaItem?> mediaItemController;
@@ -30,6 +33,7 @@ void main() {
 
   setUp(() {
     mockAudioHandler = MockAudioHandler();
+    mockPrefs = MockSharedPreferences();
 
     // Initialize stream controllers using BehaviorSubject (to return ValueStream)
     mediaItemController = BehaviorSubject<MediaItem?>();
@@ -37,13 +41,24 @@ void main() {
     queueController = BehaviorSubject<List<MediaItem>>();
     positionController = StreamController<Duration>.broadcast();
 
+    // Stub stream properties to provide ValueStreams (required by the Bloc)
+    // If your PlayerBloc implementation accesses .value on these streams
+    // during initialization, they must have a seed value.
+    mediaItemController.add(null);
+    playbackStateController.add(PlaybackState());
+    queueController.add([]);
+
     // Mock AudioHandler streams
     when(() => mockAudioHandler.mediaItem).thenAnswer((_) => mediaItemController.stream);
     when(() => mockAudioHandler.playbackState).thenAnswer((_) => playbackStateController.stream);
     when(() => mockAudioHandler.queue).thenAnswer((_) => queueController.stream);
 
-    // Initialize Bloc with mocked handler and position stream
-    playerBloc = PlayerBloc(mockAudioHandler, positionStream: positionController.stream);
+    // Stub SharedPreferences
+    when(() => mockPrefs.getString(any())).thenReturn(null);
+    when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+
+    // Initialize Bloc with mocked handler, prefs and position stream
+    playerBloc = PlayerBloc(mockAudioHandler, mockPrefs, positionStream: positionController.stream);
   });
 
   tearDown(() {

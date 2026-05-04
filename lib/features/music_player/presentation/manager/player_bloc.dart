@@ -1,74 +1,185 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'player_event.dart';
-
 part 'player_state.dart';
 
 @injectable
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final AudioHandler _audioHandler;
+  final SharedPreferences _prefs;
   final Stream<Duration>? _positionStream;
 
-  // اشتراكات لمراقبة التغيرات في المشغل
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _mediaItemSubscription;
   StreamSubscription? _queueSubscription;
 
-  PlayerBloc(this._audioHandler, {@factoryParam Stream<Duration>? positionStream}) : _positionStream = positionStream, super(const PlayerState()) {
-    // --- الاستماع للأحداث القادمة من UI ---
+  static const String _queuesKey = 'saved_custom_queues';
+  static const String _lastActiveQueueIdKey = 'last_active_queue_id';
+  static const String _lastIndexKey = 'last_song_index';
+  static const String _lastPositionKey = 'last_position';
+
+  PlayerBloc(this._audioHandler, this._prefs, {@factoryParam Stream<Duration>? positionStream}) : _positionStream = positionStream, super(const PlayerState()) {
     on<PlayAllEvent>(_onPlayAll);
     on<PlayPauseEvent>(_onPlayPause);
     on<SeekEvent>(_onSeek);
     on<SkipNextEvent>(_onSkipNext);
     on<SkipPreviousEvent>(_onSkipPrevious);
 
-    // --- الاستماع للتغيرات القادمة من AudioHandler (الأحداث الداخلية) ---
+    on<LoadSavedQueuesEvent>(_onLoadSavedQueues);
+    on<PlaySpecificQueueItemEvent>(_onPlaySpecificQueueItem);
+    on<ReorderQueueEvent>(_onReorderQueue);
+    on<PlaySavedQueueEvent>(_onPlaySavedQueue);
+    on<DeleteQueueEvent>(_onDeleteQueue);
+    on<RenameQueueEvent>(_onRenameQueue);
+
     on<_MediaItemUpdated>(_onMediaItemUpdated);
     on<_PlaybackStateUpdated>(_onPlaybackStateUpdated);
     on<_PositionUpdated>(_onPositionUpdated);
     on<_QueueUpdated>(_onQueueUpdated);
 
-    // --- الاستماع للتغيرات القادمة من AudioHandler ---
     _listenToAudioHandler();
+
+    add(LoadSavedQueuesEvent());
   }
 
-  // 1. منطق تشغيل قائمة أغاني
-  Future<void> _onPlayAll(PlayAllEvent event, Emitter<PlayerState> emit) async {
-    // تحويل SongModel الخاص بـ on_audio_query إلى MediaItem الخاص بـ audio_service
-    final mediaItems = event.songs
-        .map(
-          (song) => MediaItem(
-            id: song.id.toString(),
-            // استخدام المعرف الرقمي كـ ID لسهولة استرجاعه
-            album: song.album ?? "Unknown Album",
-            title: song.title,
-            artist: song.artist ?? "Unknown Artist",
-            duration: Duration(milliseconds: song.duration ?? 0),
-            artUri: Uri.parse("content://media/external/audio/media/${song.id}/albumart"),
-            extras: {'url': song.data, 'uri': song.uri},
-          ),
-        )
-        .toList();
+  // دالة لحفظ الجلسة الحالية
+  Future<void> _saveCurrentSession() async {
+    if (state.activeQueueId != null) {
+      await _prefs.setString(_lastActiveQueueIdKey, state.activeQueueId!);
+    }
+    await _prefs.setInt(_lastIndexKey, state.currentIndex);
+    await _prefs.setInt(_lastPositionKey, state.position.inMilliseconds);
+  }
 
-    // تحديث الحالة فوراً لتحسين استجابة الواجهة
+  Future<void> _onPlayAll(PlayAllEvent event, Emitter<PlayerState> emit) async {
+    final mediaItems = event.songs.map((song) => MediaItem(
+      id: song.id.toString(),
+      album: song.album ?? "Unknown Album",
+      title: song.title,
+      artist: song.artist ?? "Unknown Artist",
+      duration: Duration(milliseconds: song.duration ?? 0),
+      artUri: Uri.parse("content://media/external/audio/media/${song.id}/albumart"),
+      extras: {'url': song.data, 'uri': song.uri},
+    )).toList();
+
+    final newQueueId = DateTime.now().millisecondsSinceEpoch.toString();
+    final newQueueName = 'Queue ${state.savedQueues.length + 1}';
+
+    final newQueue = CustomQueue(id: newQueueId, name: newQueueName, items: mediaItems);
+    final updatedQueues = List<CustomQueue>.from(state.savedQueues)..add(newQueue);
+
+    _saveQueuesToPrefs(updatedQueues);
+
     emit(state.copyWith(
       isPlaying: true,
       currentSong: mediaItems[event.index],
       queue: mediaItems,
       currentIndex: event.index,
+      savedQueues: updatedQueues,
+      activeQueueId: newQueueId,
     ));
 
-    // تحديث القائمة في المشغل
     await _audioHandler.updateQueue(mediaItems);
-
-    // تشغيل الأغنية المختارة
     await _audioHandler.skipToQueueItem(event.index);
+    _saveCurrentSession();
+  }
+
+  void _onLoadSavedQueues(LoadSavedQueuesEvent event, Emitter<PlayerState> emit) async {
+    final String? queuesJson = _prefs.getString(_queuesKey);
+    List<CustomQueue> loadedQueues = [];
+
+    if (queuesJson != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(queuesJson);
+        loadedQueues = decoded.map((q) => CustomQueue.fromJson(q)).toList();
+      } catch (e) {}
+    }
+
+    // استعادة الجلسة السابقة
+    final lastQueueId = _prefs.getString(_lastActiveQueueIdKey);
+    final lastIndex = _prefs.getInt(_lastIndexKey) ?? 0;
+    final lastPositionMs = _prefs.getInt(_lastPositionKey) ?? 0;
+
+    if (loadedQueues.isNotEmpty && lastQueueId != null) {
+      try {
+        final queueToRestore = loadedQueues.firstWhere((q) => q.id == lastQueueId);
+
+        emit(state.copyWith(
+          savedQueues: loadedQueues,
+          activeQueueId: queueToRestore.id,
+          queue: queueToRestore.items,
+          currentIndex: lastIndex,
+          currentSong: lastIndex < queueToRestore.items.length ? queueToRestore.items[lastIndex] : null,
+          position: Duration(milliseconds: lastPositionMs),
+        ));
+
+        // تمرير البيانات للـ AudioHandler لاستعادتها بدون تشغيل
+        await _audioHandler.updateQueue(queueToRestore.items);
+        await _audioHandler.customAction('action_restore_session', {
+          'index': lastIndex,
+          'position': lastPositionMs,
+        });
+
+        return; // خروج لعدم عمل emit مرة أخرى
+      } catch (e) {}
+    }
+
+    emit(state.copyWith(savedQueues: loadedQueues));
+  }
+
+  Future<void> _onPlaySpecificQueueItem(PlaySpecificQueueItemEvent event, Emitter<PlayerState> emit) async {
+    await _audioHandler.skipToQueueItem(event.index);
+    _saveCurrentSession();
+  }
+
+  void _onReorderQueue(ReorderQueueEvent event, Emitter<PlayerState> emit) {
+    _audioHandler.customAction('action_move_queue_item', {
+      'oldIndex': event.oldIndex,
+      'newIndex': event.newIndex,
+    });
+  }
+
+  Future<void> _onPlaySavedQueue(PlaySavedQueueEvent event, Emitter<PlayerState> emit) async {
+    final queueToPlay = state.savedQueues.firstWhere((q) => q.id == event.queueId);
+
+    emit(state.copyWith(
+      activeQueueId: queueToPlay.id,
+      queue: queueToPlay.items,
+      currentIndex: 0,
+    ));
+
+    await _audioHandler.updateQueue(queueToPlay.items);
+    await _audioHandler.skipToQueueItem(0);
+    if(!state.isPlaying) _audioHandler.play();
+    _saveCurrentSession();
+  }
+
+  void _onDeleteQueue(DeleteQueueEvent event, Emitter<PlayerState> emit) {
+    final updatedQueues = state.savedQueues.where((q) => q.id != event.queueId).toList();
+    _saveQueuesToPrefs(updatedQueues);
+    emit(state.copyWith(savedQueues: updatedQueues));
+  }
+
+  void _onRenameQueue(RenameQueueEvent event, Emitter<PlayerState> emit) {
+    final updatedQueues = state.savedQueues.map((q) {
+      if (q.id == event.queueId) return q.copyWith(name: event.newName);
+      return q;
+    }).toList();
+    _saveQueuesToPrefs(updatedQueues);
+    emit(state.copyWith(savedQueues: updatedQueues));
+  }
+
+  Future<void> _saveQueuesToPrefs(List<CustomQueue> queues) async {
+    final String encoded = jsonEncode(queues.map((q) => q.toJson()).toList());
+    await _prefs.setString(_queuesKey, encoded);
   }
 
   void _onPlayPause(PlayPauseEvent event, Emitter<PlayerState> emit) {
@@ -79,6 +190,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       _audioHandler.play();
       emit(state.copyWith(isPlaying: true));
     }
+    _saveCurrentSession(); // حفظ عند الإيقاف المؤقت
   }
 
   void _onSeek(SeekEvent event, Emitter<PlayerState> emit) {
@@ -86,17 +198,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   void _onSkipNext(SkipNextEvent event, Emitter<PlayerState> emit) => _audioHandler.skipToNext();
-
   void _onSkipPrevious(SkipPreviousEvent event, Emitter<PlayerState> emit) => _audioHandler.skipToPrevious();
 
-  // --- معالجات الأحداث الداخلية (Internal Event Handlers) ---
   void _onMediaItemUpdated(_MediaItemUpdated event, Emitter<PlayerState> emit) {
     final mediaItem = event.mediaItem;
     if (mediaItem == null) return;
-
     final index = state.queue.indexWhere((item) => item.id == mediaItem.id);
-
     emit(state.copyWith(currentSong: mediaItem, duration: mediaItem.duration ?? Duration.zero, currentIndex: index != -1 ? index : state.currentIndex));
+    _saveCurrentSession(); // حفظ عند تغير الأغنية
   }
 
   void _onPlaybackStateUpdated(_PlaybackStateUpdated event, Emitter<PlayerState> emit) {
@@ -105,6 +214,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   void _onPositionUpdated(_PositionUpdated event, Emitter<PlayerState> emit) {
     emit(state.copyWith(position: event.position));
+    // حفظ موضع الأغنية كل 5 ثوانٍ لتقليل الضغط على الذاكرة المحلية
+    if (event.position.inSeconds > 0 && event.position.inSeconds % 5 == 0) {
+      _saveCurrentSession();
+    }
   }
 
   void _onQueueUpdated(_QueueUpdated event, Emitter<PlayerState> emit) {
@@ -113,38 +226,37 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (mediaItem != null) {
       index = event.queue.indexWhere((item) => item.id == mediaItem.id);
     }
-    // Only update index if it was found in the new queue, otherwise preserve the current index
-    // Also, if event.queue and state.queue are different in contents, we should keep the state index
-    // unless we found the item.
-    emit(state.copyWith(queue: event.queue, currentIndex: index != -1 ? index : state.currentIndex));
+
+    // Update saved queues if there's an active one to persist the new order
+    List<CustomQueue> updatedSavedQueues = state.savedQueues;
+    if (state.activeQueueId != null) {
+      updatedSavedQueues = state.savedQueues.map((q) {
+        if (q.id == state.activeQueueId) {
+          return q.copyWith(items: event.queue);
+        }
+        return q;
+      }).toList();
+      _saveQueuesToPrefs(updatedSavedQueues);
+    }
+
+    emit(state.copyWith(
+      queue: event.queue,
+      currentIndex: index != -1 ? index : state.currentIndex,
+      savedQueues: updatedSavedQueues,
+    ));
+
+    _saveCurrentSession();
   }
 
-  // --- المراقبة (The Bridge) ---
   void _listenToAudioHandler() {
-    // 1. مراقبة الأغنية الحالية
-    _mediaItemSubscription = _audioHandler.mediaItem.listen((mediaItem) {
-      add(_MediaItemUpdated(mediaItem));
-    });
-
-    // 2. مراقبة حالة التشغيل (Play/Pause/Buffering)
+    _mediaItemSubscription = _audioHandler.mediaItem.listen((mediaItem) => add(_MediaItemUpdated(mediaItem)));
     _playerStateSubscription = _audioHandler.playbackState.listen((playbackState) {
       final isPlaying = playbackState.playing;
-      final processingState = playbackState.processingState;
-
-      final isBuffering = processingState == AudioProcessingState.buffering || processingState == AudioProcessingState.loading;
-
+      final isBuffering = playbackState.processingState == AudioProcessingState.buffering || playbackState.processingState == AudioProcessingState.loading;
       add(_PlaybackStateUpdated(isPlaying: isPlaying, isBuffering: isBuffering));
     });
-
-    // 3. مراقبة شريط التقدم (Position)
-    (_positionStream ?? AudioService.position).listen((position) {
-      add(_PositionUpdated(position));
-    });
-
-    // 4. مراقبة قائمة التشغيل
-    _queueSubscription = _audioHandler.queue.listen((queue) {
-      add(_QueueUpdated(queue));
-    });
+    (_positionStream ?? AudioService.position).listen((position) => add(_PositionUpdated(position)));
+    _queueSubscription = _audioHandler.queue.listen((queue) => add(_QueueUpdated(queue)));
   }
 
   @override

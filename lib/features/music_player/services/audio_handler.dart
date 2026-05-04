@@ -28,6 +28,8 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   static const String actionAddFavorite = 'action_add_favorite';
   static const String actionRemoveFavorite = 'action_remove_favorite';
+  static const String actionRestoreSession = 'action_restore_session';
+  static const String actionMoveQueueItem = 'action_move_queue_item';
 
   static const _favortieOutlinedControl = MediaControl(
     androidIcon: 'drawable/ic_favorite_outlined',
@@ -44,13 +46,9 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   );
 
   static const _closeControl = MediaControl(androidIcon: 'drawable/ic_close', label: 'Close', action: MediaAction.stop);
-
   static const _playControl = MediaControl(androidIcon: 'drawable/ic_play', label: 'Play', action: MediaAction.play);
-
   static const _pauseControl = MediaControl(androidIcon: 'drawable/ic_pause', label: 'Pause', action: MediaAction.pause);
-
   static const _nextControl = MediaControl(androidIcon: 'drawable/ic_next', label: 'Next', action: MediaAction.skipToNext);
-
   static const _previousControl = MediaControl(androidIcon: 'drawable/ic_previous', label: 'Previous', action: MediaAction.skipToPrevious);
 
   // ignore: deprecated_member_use
@@ -100,6 +98,11 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     // Update system UI
     this.queue.add(queue);
+  }
+
+  Future<void> moveQueueItem(int index, int newIndex) async {
+    await _playlist.move(index, newIndex);
+    _broadcastState(_player.playbackEvent);
   }
 
   // Helper function
@@ -165,7 +168,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // تم فصل التحديث في دالة منفصلة لتجنب تكرار الكود
   void _broadcastState(PlaybackEvent? event) {
     final playing = _player.playing;
-    final queueIndex = event?.currentIndex ?? playbackState.value.queueIndex;
+    final queueIndex = event?.currentIndex ?? _player.currentIndex ?? playbackState.value.queueIndex;
 
     playbackState.add(
       playbackState.value.copyWith(
@@ -194,6 +197,23 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (name == actionRemoveFavorite) {
       isFavorite = false;
       _broadcastState(_player.playbackEvent);
+      return;
+    }
+    // الإجراء الجديد لاستعادة الجلسة بدون تشغيل تلقائي
+    if (name == actionRestoreSession) {
+      final index = extras?['index'] as int? ?? 0;
+      final positionMs = extras?['position'] as int? ?? 0;
+
+      if (_playlist.length > 0 && index >= 0 && index < _playlist.length) {
+        await _player.seek(Duration(milliseconds: positionMs), index: index);
+      }
+      return;
+    }
+
+    if (name == actionMoveQueueItem) {
+      final oldIndex = extras?['oldIndex'] as int;
+      final newIndex = extras?['newIndex'] as int;
+      await moveQueueItem(oldIndex, newIndex);
       return;
     }
   }
