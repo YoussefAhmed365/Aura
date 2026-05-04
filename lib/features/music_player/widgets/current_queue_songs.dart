@@ -110,38 +110,172 @@ class _CurrentQueueSongsState extends State<CurrentQueueSongs> {
             final item = currentQueueItems[index];
             final isPlaying = index == currentIndex;
 
-            return ListTile(
+            return GestureDetector(
               key: ValueKey(item.id),
-              leading: ReorderableDragStartListener(
-                index: index,
-                child: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.menu_rounded),
-                ),
-              ),
-              title: Text(
-                item.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: isPlaying ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                  fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              subtitle: Text(
-                item.artist ?? "Unknown Artist",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: isPlaying ? Theme.of(context).colorScheme.primary.withAlpha(150) : Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              trailing: isPlaying ? Icon(Icons.equalizer_rounded, color: Theme.of(context).colorScheme.primary) : null,
-              onTap: () {
-                if (!isPlaying) {
-                  context.read<PlayerBloc>().add(PlaySpecificQueueItemEvent(index));
-                }
+              onLongPressStart: (LongPressStartDetails details) {
+                showMenu(
+                  context: context,
+                  popUpAnimationStyle: AnimationStyle(duration: const Duration(milliseconds: 600)),
+                  // Define the position of the popup menu
+                  position: RelativeRect.fromLTRB(
+                    details.globalPosition.dx,
+                    details.globalPosition.dy,
+                    details.globalPosition.dx,
+                    details.globalPosition.dy,
+                  ),
+                  items: <PopupMenuEntry>[
+                    const PopupMenuItem(
+                      value: 'info',
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline_rounded, size: 20),
+                          SizedBox(width: 10),
+                          Text('File information'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'remove',
+                      child: Row(
+                        children: [
+                          Icon(Icons.remove_circle_outline, size: 20),
+                          SizedBox(width: 10),
+                          Text('Remove from queue'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: 'play_after_current',
+                      child: Row(
+                        children: [
+                          Icon(Icons.skip_next, size: 20),
+                          SizedBox(width: 10),
+                          Text('Play after current song'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'add_to_playlists',
+                      child: Row(
+                        children: [
+                          Icon(Icons.playlist_add, size: 20),
+                          SizedBox(width: 10),
+                          Text('Add to playlists'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: 'preview',
+                      child: Row(
+                        children: [
+                          Icon(Icons.play_circle_outline_rounded, size: 20),
+                          SizedBox(width: 10),
+                          Text('Preview'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'stop_after_this_song',
+                      child: Row(
+                        children: [
+                          Icon(Icons.pause_circle_outline_rounded, size: 20),
+                          SizedBox(width: 10),
+                          Text('Stop after this song'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 20),
+                          SizedBox(width: 10),
+                          Text('Edit tags'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'share',
+                      child: Row(
+                        children: [
+                          Icon(Icons.share_rounded, size: 20),
+                          SizedBox(width: 10),
+                          Text('Share'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: 'select',
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_box_outlined, size: 20),
+                          SizedBox(width: 10),
+                          Text('Select song'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'select_all',
+                      child: Row(
+                        children: [
+                          Icon(Icons.select_all_rounded, size: 20),
+                          SizedBox(width: 10),
+                          Text('Select all songs'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_rounded, size: 20),
+                          SizedBox(width: 10),
+                          Text('Delete permanently'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ).then((value) {
+                  if (value == 'remove') {
+                    // context.read<PlayerBloc>().add(RemoveFromQueueEvent(index));
+                  }
+                });
               },
+              child: ListTile(
+                leading: ReorderableDragStartListener(
+                  index: index,
+                  child: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.menu_rounded),
+                  ),
+                ),
+                title: Text(
+                  item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: isPlaying ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                    fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                subtitle: Text(
+                  item.artist ?? "Unknown Artist",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: isPlaying ? Theme.of(context).colorScheme.primary.withAlpha(150) : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                trailing: isPlaying ? Icon(Icons.equalizer_rounded, color: Theme.of(context).colorScheme.primary) : null,
+                onTap: () {
+                  if (!isPlaying) {
+                    context.read<PlayerBloc>().add(PlaySpecificQueueItemEvent(index));
+                  }
+                },
+              ),
             );
           },
         );
