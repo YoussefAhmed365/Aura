@@ -37,20 +37,12 @@ class AudioRepositoryImpl implements AudioRepository {
 
   @override
   Future<List<SongModel>> getSongsByAlbum(int albumId) async {
-    return await _audioQuery.queryAudiosFrom(
-      AudiosFromType.ALBUM_ID,
-      albumId,
-      sortType: SongSortType.TITLE,
-    );
+    return await _audioQuery.queryAudiosFrom(AudiosFromType.ALBUM_ID, albumId, sortType: SongSortType.DATE_ADDED);
   }
 
   @override
   Future<List<SongModel>> getSongsByArtist(int artistId) async {
-    return await _audioQuery.queryAudiosFrom(
-      AudiosFromType.ARTIST_ID,
-      artistId,
-      sortType: SongSortType.TITLE,
-    );
+    return await _audioQuery.queryAudiosFrom(AudiosFromType.ARTIST_ID, artistId, sortType: SongSortType.DATE_ADDED);
   }
 
   @override
@@ -60,11 +52,7 @@ class AudioRepositoryImpl implements AudioRepository {
 
   @override
   Future<List<SongModel>> getSongsByPlaylist(int playlistId) async {
-    return await _audioQuery.queryAudiosFrom(
-      AudiosFromType.PLAYLIST,
-      playlistId,
-      sortType: SongSortType.TITLE,
-    );
+    return await _audioQuery.queryAudiosFrom(AudiosFromType.PLAYLIST, playlistId, sortType: SongSortType.DATE_ADDED);
   }
 
   @override

@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:aura/features/music_player/services/audio_handler.dart';
+import 'package:aura/core/services/audio_handler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:mocktail/mocktail.dart';
@@ -18,7 +18,7 @@ void main() {
     registerFallbackValue(Duration.zero);
   });
 
-  late MyAudioHandler audioHandler;
+  late AuraAudioHandler audioHandler;
   late MockAudioPlayer mockPlayer;
   late MockConcatenatingAudioSource mockPlaylist;
 
@@ -77,7 +77,7 @@ void main() {
     when(() => mockPlaylist.clear()).thenAnswer((_) async {});
     when(() => mockPlaylist.addAll(any())).thenAnswer((_) async {});
 
-    audioHandler = MyAudioHandler(player: mockPlayer, playlist: mockPlaylist);
+    audioHandler = AuraAudioHandler(player: mockPlayer, playlist: mockPlaylist);
   });
 
   group('skipToQueueItem', () {
@@ -186,7 +186,7 @@ void main() {
     test('sets isFavorite to true when actionAddFavorite is called', () async {
       expect(audioHandler.isFavorite, false);
 
-      await audioHandler.customAction(MyAudioHandler.actionAddFavorite);
+      await audioHandler.customAction(AuraAudioHandler.actionAddFavorite);
 
       expect(audioHandler.isFavorite, true);
     });
@@ -198,7 +198,7 @@ void main() {
         audioHandler.isFavorite = true;
         expect(audioHandler.isFavorite, true);
 
-        await audioHandler.customAction(MyAudioHandler.actionRemoveFavorite);
+        await audioHandler.customAction(AuraAudioHandler.actionRemoveFavorite);
 
         expect(audioHandler.isFavorite, false);
       },
@@ -216,14 +216,14 @@ void main() {
       expect(audioHandler.isFavorite, false);
 
       await audioHandler.customAction(
-        MyAudioHandler.actionAddFavorite,
+        AuraAudioHandler.actionAddFavorite,
         {'some_key': 'some_value'},
       );
 
       expect(audioHandler.isFavorite, true);
 
       await audioHandler.customAction(
-        MyAudioHandler.actionRemoveFavorite,
+        AuraAudioHandler.actionRemoveFavorite,
         {'some_key': 'some_value'},
       );
 

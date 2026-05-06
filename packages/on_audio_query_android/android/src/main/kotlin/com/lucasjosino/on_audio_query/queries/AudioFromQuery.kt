@@ -184,7 +184,7 @@ class AudioFromQuery : ViewModel() {
                     tempData["_id"] = tempData["audio_id"]
                 }
 
-                //Get a extra information from audio, e.g: extension, uri, etc..
+                // Get extra information from audio, e.g: extension, uri, etc..
                 val tempExtraData = helper.loadSongExtraInfo(URI, tempData)
                 tempData.putAll(tempExtraData)
 

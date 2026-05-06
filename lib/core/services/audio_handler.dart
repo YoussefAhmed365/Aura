@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 Future<AudioHandler> initAudioService() async {
   return await AudioService.init(
-    builder: () => MyAudioHandler(),
+    builder: () => AuraAudioHandler(),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.codev.aura.music_player.channel.audio',
       androidNotificationChannelName: 'Music Playback',
@@ -16,7 +16,7 @@ Future<AudioHandler> initAudioService() async {
   );
 }
 
-class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
+class AuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // 1. Use ConcatenatingAudioSource instead of a regular list
   // This allows for queue management (Gapless Playback) and automatic navigation
   final AudioPlayer _player;
@@ -52,15 +52,15 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   static const _previousControl = MediaControl(androidIcon: 'drawable/ic_previous', label: 'Previous', action: MediaAction.skipToPrevious);
 
   // ignore: deprecated_member_use
-  MyAudioHandler({AudioPlayer? player, ConcatenatingAudioSource? playlist})
+  AuraAudioHandler({AudioPlayer? player, ConcatenatingAudioSource? playlist})
     : _player = player ?? AudioPlayer(),
       // ignore: deprecated_member_use
       _playlist = playlist ?? ConcatenatingAudioSource(children: []) {
     _loadEmptyPlaylist();
     _notifyAudioHandlerAboutPlaybackEvents();
-    _listenToCurrentPosition();
     _listenToCurrentSong();
     _listenToSequenceState();
+    _listenToCurrentPosition();
   }
 
   Future<void> _loadEmptyPlaylist() async {
@@ -105,7 +105,8 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _broadcastState(_player.playbackEvent);
   }
 
-  // Helper function
+  // Helper function to translate audio from mediaItem to an AudioSource for (just_audio) engine
+  // Attach mediaItem tags with the AudioSource to include the song data such (Artwork, Title, Album, etc.)
   UriAudioSource _createAudioSource(MediaItem mediaItem) {
     final String? sourceUri = mediaItem.extras?['uri'] ?? mediaItem.extras?['url'];
     final uriToUse = sourceUri ?? mediaItem.id;
