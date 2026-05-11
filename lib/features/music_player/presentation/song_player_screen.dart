@@ -180,6 +180,7 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                 if (newId != _currentSongId) {
                   _currentSongId = newId;
                   _updatePalette(newId, isDark, getIt<OnAudioQuery>());
+                  context.read<PlayerBloc>().add(CheckFavoriteStatusEvent(newId));
                 }
               },
               child: AnimatedContainer(
@@ -317,7 +318,19 @@ class _SongPlayerScreenState extends State<SongPlayerScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          IconButton(onPressed: () {}, icon: Icon(Icons.favorite_outline_rounded, size: 25), color: iconColor),
+                          BlocSelector<PlayerBloc, PlayerState, bool>(
+                            selector: (state) => state.isFavorite,
+                            builder: (context, isFavorite) {
+                              return IconButton(
+                                onPressed: () {
+                                  final songId = getSongId(context.read<PlayerBloc>().state.currentSong?.id);
+                                  context.read<PlayerBloc>().add(ToggleFavoriteEvent(songId));
+                                },
+                                icon: Icon(isFavorite ? Icons.favorite_rounded : Icons.favorite_outline_rounded, size: 25),
+                                color: iconColor,
+                              );
+                            },
+                          ),
                           IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded, size: 25), color: iconColor),
                           IconButton(onPressed: () {}, icon: Icon(Icons.subtitles, size: 25), color: iconColor),
                           IconButton(onPressed: () {}, icon: Icon(Icons.playlist_add, size: 25), color: iconColor),

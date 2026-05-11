@@ -17,6 +17,13 @@ class PlayAllEvent extends PlayerEvent {
   List<Object> get props => [songs, index];
 }
 
+class PlaySongsByIdsEvent extends PlayerEvent {
+  final List<int> ids;
+  final int initialIndex;
+
+  const PlaySongsByIdsEvent({required this.ids, this.initialIndex = 0});
+}
+
 class PlayPauseEvent extends PlayerEvent {}
 
 class SeekEvent extends PlayerEvent {
@@ -32,12 +39,34 @@ class SkipNextEvent extends PlayerEvent {}
 
 class SkipPreviousEvent extends PlayerEvent {}
 
+class ToggleFavoriteEvent extends PlayerEvent {
+  final int songId;
+
+  const ToggleFavoriteEvent(this.songId);
+
+  @override
+  List<Object> get props => [songId];
+}
+
+class LoadFavoritesEvent extends PlayerEvent {}
+
+class CheckFavoriteStatusEvent extends PlayerEvent {
+  final int songId;
+
+  const CheckFavoriteStatusEvent(this.songId);
+
+  @override
+  List<Object> get props => [songId];
+}
+
 // ----------------- أحداث الـ Queues الجديدة -----------------
 
 // حدث لتشغيل أغنية معينة من الـ Queue النشط حالياً
 class PlaySpecificQueueItemEvent extends PlayerEvent {
   final int index;
+
   const PlaySpecificQueueItemEvent(this.index);
+
   @override
   List<Object> get props => [index];
 }
@@ -45,14 +74,18 @@ class PlaySpecificQueueItemEvent extends PlayerEvent {
 // حدث لتشغيل Queue محفوظ مسبقاً
 class PlaySavedQueueEvent extends PlayerEvent {
   final String queueId;
+
   const PlaySavedQueueEvent(this.queueId);
+
   @override
   List<Object> get props => [queueId];
 }
 
 class DeleteQueueEvent extends PlayerEvent {
   final String queueId;
+
   const DeleteQueueEvent(this.queueId);
+
   @override
   List<Object> get props => [queueId];
 }
@@ -60,7 +93,9 @@ class DeleteQueueEvent extends PlayerEvent {
 class RenameQueueEvent extends PlayerEvent {
   final String queueId;
   final String newName;
+
   const RenameQueueEvent(this.queueId, this.newName);
+
   @override
   List<Object> get props => [queueId, newName];
 }

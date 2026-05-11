@@ -112,9 +112,43 @@ class AuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final uriToUse = sourceUri ?? mediaItem.id;
 
     return AudioSource.uri(
-      Uri.parse(uriToUse),
+      _safeParseUri(uriToUse),
       tag: mediaItem, // Very important for retrieving data
     );
+  }
+
+  /// Safely parses a URI string and validates it against security risks.
+  /// Prevents Unrestricted Local File Inclusion and Directory Traversal.
+  Uri _safeParseUri(String uriString) {
+    try {
+      final uri = Uri.parse(uriString);
+
+      // Define allowed schemes for audio playback
+      const allowedSchemes = {'http', 'https', 'content', 'asset', 'file'};
+
+      final scheme = uri.scheme.toLowerCase();
+
+      // If a scheme is present, it must be in the whitelist
+      if (scheme.isNotEmpty && !allowedSchemes.contains(scheme)) {
+        debugPrint('Security Warning: Rejected invalid URI scheme: $scheme');
+        return Uri.parse('about:blank');
+      }
+
+      // Prevent directory traversal for file-based URIs
+      // Also check the raw string for ".." to catch cases where Uri.parse might normalize it
+      if (scheme == 'file' || scheme.isEmpty) {
+        final path = uri.path;
+        if (path.contains('..') || uriString.contains('..')) {
+          debugPrint('Security Warning: Rejected URI with potential directory traversal: $uriString');
+          return Uri.parse('about:blank');
+        }
+      }
+
+      return uri;
+    } catch (e) {
+      debugPrint('Security Warning: Error parsing URI: $e');
+      return Uri.parse('about:blank');
+    }
   }
 
   // --- 2. Playback Controls ---

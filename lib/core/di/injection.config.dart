@@ -49,12 +49,15 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i407.ThemeCubit(gh<_i460.SharedPreferences>()),
     );
     gh.lazySingleton<_i889.AudioRepository>(
-      () => _i398.AudioRepositoryImpl(gh<_i859.OnAudioQuery>()),
+      () => _i398.AudioRepositoryImpl(
+        gh<_i859.OnAudioQuery>(),
+        gh<_i460.SharedPreferences>(),
+      ),
     );
     gh.factoryParam<_i330.PlayerBloc, _i687.Stream<Duration>?, dynamic>(
       (positionStream, _) => _i330.PlayerBloc(
         gh<_i87.AudioHandler>(),
-        gh<_i460.SharedPreferences>(),
+        gh<_i889.AudioRepository>(),
         positionStream: positionStream,
       ),
     );

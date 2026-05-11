@@ -41,11 +41,12 @@ class _SongListByEntityState extends State<SongListByEntity> {
   }
 
   void _loadFuture() {
+    final audioRepo = getIt<AudioRepository>();
     _songsFuture = widget.isPlaylist
-        ? getIt<AudioRepository>().getSongsByPlaylist(widget.id)
+        ? audioRepo.getSongsByPlaylist(widget.id)
         : widget.isArtist
-            ? getIt<AudioRepository>().getSongsByArtist(widget.id)
-            : getIt<AudioRepository>().getSongsByAlbum(widget.id);
+            ? audioRepo.getSongsByArtist(widget.id)
+            : audioRepo.getSongsByAlbum(widget.id);
   }
 
   void _onBottomNavTapped(int index) {

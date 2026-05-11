@@ -1,24 +1,24 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:aura/features/music_player/domain/repositories/audio_repository.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 // ignore: depend_on_referenced_packages
 import 'package:rxdart/rxdart.dart';
 
 // --- Mocks ---
 class MockAudioHandler extends Mock implements AudioHandler {}
 class MockSongModel extends Mock implements SongModel {}
-class MockSharedPreferences extends Mock implements SharedPreferences {}
+class MockAudioRepository extends Mock implements AudioRepository {}
 
 void main() {
   late PlayerBloc playerBloc;
   late MockAudioHandler mockAudioHandler;
-  late MockSharedPreferences mockPrefs;
+  late MockAudioRepository mockAudioRepository;
 
   // Streams controllers to simulate AudioHandler updates
   late BehaviorSubject<MediaItem?> mediaItemController;
@@ -33,7 +33,7 @@ void main() {
 
   setUp(() {
     mockAudioHandler = MockAudioHandler();
-    mockPrefs = MockSharedPreferences();
+    mockAudioRepository = MockAudioRepository();
 
     // Initialize stream controllers using BehaviorSubject (to return ValueStream)
     mediaItemController = BehaviorSubject<MediaItem?>();
@@ -53,12 +53,18 @@ void main() {
     when(() => mockAudioHandler.playbackState).thenAnswer((_) => playbackStateController.stream);
     when(() => mockAudioHandler.queue).thenAnswer((_) => queueController.stream);
 
-    // Stub SharedPreferences
-    when(() => mockPrefs.getString(any())).thenReturn(null);
-    when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+    // Stub AudioRepository
+    when(() => mockAudioRepository.getAllFavoriteSongsIds()).thenAnswer((_) async => []);
+    when(() => mockAudioRepository.getSavedQueuesJson()).thenAnswer((_) async => null);
+    when(() => mockAudioRepository.getLastSession()).thenAnswer((_) async => {});
+    when(() => mockAudioRepository.saveCurrentSession(
+          activeQueueId: any(named: 'activeQueueId'),
+          currentIndex: any(named: 'currentIndex'),
+          positionMs: any(named: 'positionMs'),
+        )).thenAnswer((_) async {});
 
     // Initialize Bloc with mocked handler, prefs and position stream
-    playerBloc = PlayerBloc(mockAudioHandler, mockPrefs, positionStream: positionController.stream);
+    playerBloc = PlayerBloc(mockAudioHandler, mockAudioRepository, positionStream: positionController.stream);
   });
 
   tearDown(() {
@@ -89,6 +95,11 @@ void main() {
         build: () {
           when(() => mockAudioHandler.updateQueue(any())).thenAnswer((_) async {});
           when(() => mockAudioHandler.skipToQueueItem(any())).thenAnswer((_) async {});
+          when(() => mockAudioRepository.saveQueuesJson(any())).thenAnswer((_) async => true);
+          when(() => mockAudioRepository.saveCurrentSession(
+                activeQueueId: any(named: 'activeQueueId'),
+                currentIndex: any(named: 'currentIndex'),
+                positionMs: any(named: 'positionMs'))).thenAnswer((_) async {});
           return playerBloc;
         },
         act: (bloc) => bloc.add(PlayAllEvent(songs: [song], index: 0)),
@@ -104,6 +115,10 @@ void main() {
         seed: () => const PlayerState(isPlaying: true),
         build: () {
           when(() => mockAudioHandler.pause()).thenAnswer((_) async {});
+          when(() => mockAudioRepository.saveCurrentSession(
+                activeQueueId: any(named: 'activeQueueId'),
+                currentIndex: any(named: 'currentIndex'),
+                positionMs: any(named: 'positionMs'))).thenAnswer((_) async {});
           return playerBloc;
         },
         act: (bloc) => bloc.add(PlayPauseEvent()),
@@ -117,6 +132,10 @@ void main() {
         seed: () => const PlayerState(isPlaying: false),
         build: () {
           when(() => mockAudioHandler.play()).thenAnswer((_) async {});
+          when(() => mockAudioRepository.saveCurrentSession(
+                activeQueueId: any(named: 'activeQueueId'),
+                currentIndex: any(named: 'currentIndex'),
+                positionMs: any(named: 'positionMs'))).thenAnswer((_) async {});
           return playerBloc;
         },
         act: (bloc) => bloc.add(PlayPauseEvent()),
@@ -160,6 +179,38 @@ void main() {
           verify(() => mockAudioHandler.skipToPrevious()).called(1);
         },
       );
+
+      blocTest<PlayerBloc, PlayerState>(
+        'ToggleFavoriteEvent adds song to favorites when not present',
+        seed: () => const PlayerState(favoritesSongIds: []),
+        build: () {
+          when(() => mockAudioRepository.addSongToFavorites(1)).thenAnswer((_) async => true);
+          return playerBloc;
+        },
+        act: (bloc) => bloc.add(const ToggleFavoriteEvent(1)),
+        expect: () => [
+          const PlayerState(favoritesSongIds: [1]),
+        ],
+        verify: (_) {
+          verify(() => mockAudioRepository.addSongToFavorites(1)).called(1);
+        },
+      );
+
+      blocTest<PlayerBloc, PlayerState>(
+        'ToggleFavoriteEvent removes song from favorites when present',
+        seed: () => const PlayerState(favoritesSongIds: [1]),
+        build: () {
+          when(() => mockAudioRepository.removeSongFromFavorites(1)).thenAnswer((_) async => true);
+          return playerBloc;
+        },
+        act: (bloc) => bloc.add(const ToggleFavoriteEvent(1)),
+        expect: () => [
+          const PlayerState(favoritesSongIds: []),
+        ],
+        verify: (_) {
+          verify(() => mockAudioRepository.removeSongFromFavorites(1)).called(1);
+        },
+      );
     });
 
     group('Internal Events (AudioHandler Updates)', () {
@@ -170,6 +221,10 @@ void main() {
           currentSong: mediaItem,
           duration: Duration.zero,
         );
+        when(() => mockAudioRepository.saveCurrentSession(
+            activeQueueId: any(named: 'activeQueueId'),
+            currentIndex: any(named: 'currentIndex'),
+            positionMs: any(named: 'positionMs'))).thenAnswer((_) async {});
 
         expectLater(playerBloc.stream, emits(expectedState));
         mediaItemController.add(mediaItem);
