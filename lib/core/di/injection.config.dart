@@ -13,6 +13,7 @@ import 'dart:async' as _i687;
 
 import 'package:audio_service/audio_service.dart' as _i87;
 import 'package:get_it/get_it.dart' as _i174;
+import 'package:hive_flutter/hive_flutter.dart' as _i986;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:just_audio/just_audio.dart' as _i501;
 import 'package:on_audio_query/on_audio_query.dart' as _i859;
@@ -20,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 import '../../features/music_player/data/repositories/audio_repository_impl.dart'
     as _i398;
+import '../../features/music_player/domain/models/custom_queue.dart' as _i300;
 import '../../features/music_player/domain/repositories/audio_repository.dart'
     as _i889;
 import '../../features/music_player/presentation/manager/player_bloc.dart'
@@ -45,13 +47,31 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i501.AudioPlayer>(() => registerModule.audioPlayer);
     gh.lazySingleton<_i859.OnAudioQuery>(() => registerModule.onAudioQuery);
+    await gh.singletonAsync<_i986.Box<dynamic>>(
+      () => registerModule.sessionBox,
+      instanceName: 'sessionBox',
+      preResolve: true,
+    );
     gh.factory<_i407.ThemeCubit>(
       () => _i407.ThemeCubit(gh<_i460.SharedPreferences>()),
+    );
+    await gh.singletonAsync<_i986.Box<String>>(
+      () => registerModule.lyricsBox,
+      instanceName: 'lyricsBox',
+      preResolve: true,
+    );
+    await gh.singletonAsync<_i986.Box<_i300.CustomQueue>>(
+      () => registerModule.customQueuesBox,
+      instanceName: 'customQueuesBox',
+      preResolve: true,
     );
     gh.lazySingleton<_i889.AudioRepository>(
       () => _i398.AudioRepositoryImpl(
         gh<_i859.OnAudioQuery>(),
         gh<_i460.SharedPreferences>(),
+        gh<_i986.Box<_i300.CustomQueue>>(instanceName: 'customQueuesBox'),
+        gh<_i986.Box<dynamic>>(instanceName: 'sessionBox'),
+        gh<_i986.Box<String>>(instanceName: 'lyricsBox'),
       ),
     );
     gh.factoryParam<_i330.PlayerBloc, _i687.Stream<Duration>?, dynamic>(

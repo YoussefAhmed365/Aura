@@ -4,6 +4,8 @@ import 'package:injectable/injectable.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:aura/features/music_player/domain/models/custom_queue.dart';
 
 @module
 abstract class RegisterModule {
@@ -34,4 +36,20 @@ abstract class RegisterModule {
       ),
     );
   }
+
+  // 5. Hive Boxes
+  @preResolve
+  @Named('customQueuesBox')
+  @singleton
+  Future<Box<CustomQueue>> get customQueuesBox async => await Hive.openBox<CustomQueue>('customQueuesBox');
+
+  @preResolve
+  @Named('sessionBox')
+  @singleton
+  Future<Box<dynamic>> get sessionBox async => await Hive.openBox('sessionBox');
+
+  @preResolve
+  @Named('lyricsBox')
+  @singleton
+  Future<Box<String>> get lyricsBox async => await Hive.openBox<String>('lyricsBox');
 }

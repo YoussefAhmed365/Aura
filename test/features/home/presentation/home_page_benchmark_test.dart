@@ -13,6 +13,7 @@ void main() {
     }
 
     stopwatch.stop();
+    // ignore: avoid_print
     print('Baseline build time for 50 HomePage creations: ${stopwatch.elapsedMilliseconds}ms');
   });
 }

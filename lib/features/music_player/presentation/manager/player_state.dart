@@ -1,50 +1,5 @@
 part of 'player_bloc.dart';
 
-// نموذج يمثل الـ Queue المخصص
-class CustomQueue extends Equatable {
-  final String id;
-  final String name;
-  final List<MediaItem> items;
-
-  const CustomQueue({required this.id, required this.name, required this.items});
-
-  CustomQueue copyWith({String? name, List<MediaItem>? items}) {
-    return CustomQueue(id: id, name: name ?? this.name, items: items ?? this.items);
-  }
-
-  // تحويل من وإلى JSON لحفظها في SharedPreferences
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'items': items.map((item) => {'id': item.id, 'album': item.album, 'title': item.title, 'artist': item.artist, 'duration': item.duration?.inMilliseconds, 'artUri': item.artUri?.toString(), 'extras': item.extras}).toList(),
-    };
-  }
-
-  factory CustomQueue.fromJson(Map<String, dynamic> json) {
-    return CustomQueue(
-      id: json['id'],
-      name: json['name'],
-      items: (json['items'] as List)
-          .map(
-            (item) => MediaItem(
-              id: item['id'],
-              album: item['album'],
-              title: item['title'],
-              artist: item['artist'],
-              duration: item['duration'] != null ? Duration(milliseconds: item['duration']) : null,
-              artUri: item['artUri'] != null ? Uri.parse(item['artUri']) : null,
-              extras: item['extras'] != null ? Map<String, dynamic>.from(item['extras']) : null,
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  @override
-  List<Object?> get props => [id, name, items];
-}
-
 class PlayerState extends Equatable {
   final MediaItem? currentSong;
   final int currentIndex;

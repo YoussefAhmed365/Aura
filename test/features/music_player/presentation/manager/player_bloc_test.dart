@@ -55,7 +55,7 @@ void main() {
 
     // Stub AudioRepository
     when(() => mockAudioRepository.getAllFavoriteSongsIds()).thenAnswer((_) async => []);
-    when(() => mockAudioRepository.getSavedQueuesJson()).thenAnswer((_) async => null);
+    when(() => mockAudioRepository.getSavedQueues()).thenAnswer((_) async => []);
     when(() => mockAudioRepository.getLastSession()).thenAnswer((_) async => {});
     when(() => mockAudioRepository.saveCurrentSession(
           activeQueueId: any(named: 'activeQueueId'),
@@ -95,7 +95,7 @@ void main() {
         build: () {
           when(() => mockAudioHandler.updateQueue(any())).thenAnswer((_) async {});
           when(() => mockAudioHandler.skipToQueueItem(any())).thenAnswer((_) async {});
-          when(() => mockAudioRepository.saveQueuesJson(any())).thenAnswer((_) async => true);
+          when(() => mockAudioRepository.saveQueue(any())).thenAnswer((_) async => true);
           when(() => mockAudioRepository.saveCurrentSession(
                 activeQueueId: any(named: 'activeQueueId'),
                 currentIndex: any(named: 'currentIndex'),

@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAudioPlayer extends Mock implements AudioPlayer {}
+// ignore: deprecated_member_use
 class MockConcatenatingAudioSource extends Mock implements ConcatenatingAudioSource {}
 class FakeAudioSource extends Fake implements AudioSource {}
 

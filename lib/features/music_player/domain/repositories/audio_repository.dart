@@ -1,4 +1,5 @@
 import 'package:on_audio_query/on_audio_query.dart';
+import '../models/custom_queue.dart';
 
 abstract class AudioRepository {
   // Get Music
@@ -45,13 +46,18 @@ abstract class AudioRepository {
 
   // --- إدارة الجلسة والقوائم المخصصة ---
 
-  // جلب وحفظ القوائم المخصصة كنصوص JSON لتجنب ربط المستودع بكلاس CustomQueue
-  Future<String?> getSavedQueuesJson();
-  Future<bool> saveQueuesJson(String json);
+  // جلب وحفظ القوائم المخصصة باستخدام Hive
+  Future<List<CustomQueue>> getSavedQueues();
+  Future<void> saveQueue(CustomQueue queue);
+  Future<void> deleteQueue(String queueId);
 
   // حفظ الجلسة الحالية (موضع الأغنية، الفهرس، ومعرف القائمة)
   Future<void> saveCurrentSession({String? activeQueueId, required int currentIndex, required int positionMs});
 
   // استرجاع تفاصيل الجلسة الأخيرة
   Future<Map<String, dynamic>> getLastSession();
+
+  // كلمات الأغاني (Lyrics)
+  Future<String?> getCachedLyrics(String songId);
+  Future<void> cacheLyrics(String songId, String lyrics);
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:equatable/equatable.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
+import '../../domain/models/custom_queue.dart';
 import '../../domain/repositories/audio_repository.dart';
 
 part 'player_event.dart';
@@ -60,16 +60,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   void _onLoadSavedQueues(LoadSavedQueuesEvent event, Emitter<PlayerState> emit) async {
-    // جلب القوائم من المستودع بدلاً من فك التشفير هنا
-    final String? queuesJson = await _audioRepository.getSavedQueuesJson();
-    List<CustomQueue> loadedQueues = [];
-
-    if (queuesJson != null) {
-      try {
-        final List<dynamic> decoded = jsonDecode(queuesJson);
-        loadedQueues = decoded.map((q) => CustomQueue.fromJson(q)).toList();
-      } catch (e) {}
-    }
+    // جلب القوائم من المستودع مباشرة ككائنات CustomQueue
+    final List<CustomQueue> loadedQueues = await _audioRepository.getSavedQueues();
 
     // جلب الجلسة السابقة
     final session = await _audioRepository.getLastSession();
@@ -96,16 +88,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         await _audioHandler.customAction('action_restore_session', {'index': lastIndex, 'position': lastPositionMs});
 
         return;
+      // ignore: empty_catches
       } catch (e) {}
     }
 
     emit(state.copyWith(savedQueues: loadedQueues));
   }
 
-  Future<void> _saveQueuesToRepository(List<CustomQueue> queues) async {
-    final String encoded = jsonEncode(queues.map((q) => q.toJson()).toList());
-    await _audioRepository.saveQueuesJson(encoded);
-  }
+  // تمت إزالة _saveQueuesToRepository القديمة لأنه يتم استخدام المستودع مباشرة لكل قائمة
 
   // --- باقي أحداث الواجهة (UI Events) ---
 
@@ -130,7 +120,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final newQueue = CustomQueue(id: newQueueId, name: newQueueName, items: mediaItems);
     final updatedQueues = List<CustomQueue>.from(state.savedQueues)..add(newQueue);
 
-    _saveQueuesToRepository(updatedQueues);
+    await _audioRepository.saveQueue(newQueue);
 
     emit(state.copyWith(isPlaying: true, currentSong: mediaItems[event.index], queue: mediaItems, currentIndex: event.index, savedQueues: updatedQueues, activeQueueId: newQueueId));
 
@@ -168,16 +158,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   void _onDeleteQueue(DeleteQueueEvent event, Emitter<PlayerState> emit) {
     final updatedQueues = state.savedQueues.where((q) => q.id != event.queueId).toList();
-    _saveQueuesToRepository(updatedQueues);
+    _audioRepository.deleteQueue(event.queueId);
     emit(state.copyWith(savedQueues: updatedQueues));
   }
 
   void _onRenameQueue(RenameQueueEvent event, Emitter<PlayerState> emit) {
     final updatedQueues = state.savedQueues.map((q) {
-      if (q.id == event.queueId) return q.copyWith(name: event.newName);
+      if (q.id == event.queueId) {
+        final renamedQueue = q.copyWith(name: event.newName);
+        _audioRepository.saveQueue(renamedQueue);
+        return renamedQueue;
+      }
       return q;
     }).toList();
-    _saveQueuesToRepository(updatedQueues);
     emit(state.copyWith(savedQueues: updatedQueues));
   }
 
@@ -231,11 +224,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (state.activeQueueId != null) {
       updatedSavedQueues = state.savedQueues.map((q) {
         if (q.id == state.activeQueueId) {
-          return q.copyWith(items: event.queue);
+          final updatedQueue = q.copyWith(items: event.queue);
+          _audioRepository.saveQueue(updatedQueue);
+          return updatedQueue;
         }
         return q;
       }).toList();
-      _saveQueuesToRepository(updatedSavedQueues);
     }
 
     emit(state.copyWith(queue: event.queue, currentIndex: index != -1 ? index : state.currentIndex, savedQueues: updatedSavedQueues));

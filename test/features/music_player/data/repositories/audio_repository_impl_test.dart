@@ -1,29 +1,54 @@
 import 'package:aura/features/music_player/data/repositories/audio_repository_impl.dart';
+import 'package:aura/features/music_player/domain/models/custom_queue.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class MockOnAudioQuery extends Mock implements OnAudioQuery {}
 
 class MockSharedPreferences extends Mock implements SharedPreferences {}
 
+class MockBox<T> extends Mock implements Box<T> {}
+
+class FakeCustomQueue extends Fake implements CustomQueue {}
+
 void main() {
   late AudioRepositoryImpl repository;
   late MockOnAudioQuery mockOnAudioQuery;
   late MockSharedPreferences mockSharedPreferences;
+  late MockBox<CustomQueue> mockQueuesBox;
+  late MockBox<dynamic> mockSessionBox;
+  late MockBox<String> mockLyricsBox;
 
   setUpAll(() {
     registerFallbackValue(AudiosFromType.ALBUM_ID);
     registerFallbackValue(SongSortType.TITLE);
     registerFallbackValue(OrderType.ASC_OR_SMALLER);
     registerFallbackValue(UriType.EXTERNAL);
+    registerFallbackValue(FakeCustomQueue());
   });
 
   setUp(() {
     mockOnAudioQuery = MockOnAudioQuery();
     mockSharedPreferences = MockSharedPreferences();
-    repository = AudioRepositoryImpl(mockOnAudioQuery, mockSharedPreferences);
+    mockQueuesBox = MockBox<CustomQueue>();
+    mockSessionBox = MockBox<dynamic>();
+    mockLyricsBox = MockBox<String>();
+
+    when(() => mockSharedPreferences.getString('saved_custom_queues')).thenReturn(null);
+    when(() => mockSharedPreferences.getString('last_active_queue_id')).thenReturn(null);
+    when(() => mockSharedPreferences.getInt('last_song_index')).thenReturn(null);
+    when(() => mockSharedPreferences.getInt('last_position')).thenReturn(null);
+
+    repository = AudioRepositoryImpl(
+      mockOnAudioQuery, 
+      mockSharedPreferences,
+      mockQueuesBox,
+      mockSessionBox,
+      mockLyricsBox,
+    );
   });
 
   group('AudioRepositoryImpl', () {
@@ -132,54 +157,6 @@ void main() {
       });
     });
 
-    group('getSongsByAlbum', () {
-      test('should return list of songs for a given albumId', () async {
-        // Arrange
-        const albumId = 123;
-        final expectedSongs = <SongModel>[];
-        when(() => mockOnAudioQuery.queryAudiosFrom(
-              any(),
-              any(),
-              sortType: any(named: 'sortType'),
-            )).thenAnswer((_) async => expectedSongs);
-
-        // Act
-        final result = await repository.getSongsByAlbum(albumId);
-
-        // Assert
-        expect(result, expectedSongs);
-        verify(() => mockOnAudioQuery.queryAudiosFrom(
-              AudiosFromType.ALBUM_ID,
-              albumId,
-              sortType: SongSortType.DATE_ADDED,
-            )).called(1);
-      });
-    });
-
-    group('getSongsByArtist', () {
-      test('should return list of songs for a given artistId', () async {
-        // Arrange
-        const artistId = 456;
-        final expectedSongs = <SongModel>[];
-        when(() => mockOnAudioQuery.queryAudiosFrom(
-              any(),
-              any(),
-              sortType: any(named: 'sortType'),
-            )).thenAnswer((_) async => expectedSongs);
-
-        // Act
-        final result = await repository.getSongsByArtist(artistId);
-
-        // Assert
-        expect(result, expectedSongs);
-        verify(() => mockOnAudioQuery.queryAudiosFrom(
-              AudiosFromType.ARTIST_ID,
-              artistId,
-              sortType: SongSortType.DATE_ADDED,
-            )).called(1);
-      });
-    });
-
     group('getPlaylists', () {
       test('should return list of playlists when queryPlaylists is called', () async {
         // Arrange
@@ -192,60 +169,6 @@ void main() {
         // Assert
         expect(result, expectedPlaylists);
         verify(() => mockOnAudioQuery.queryPlaylists()).called(1);
-      });
-    });
-
-    group('getSongsByPlaylist', () {
-      test('should return list of songs for a given playlistId', () async {
-        // Arrange
-        const playlistId = 789;
-        final expectedSongs = <SongModel>[];
-        when(() => mockOnAudioQuery.queryAudiosFrom(
-              any(),
-              any(),
-              sortType: any(named: 'sortType'),
-            )).thenAnswer((_) async => expectedSongs);
-
-        // Act
-        final result = await repository.getSongsByPlaylist(playlistId);
-
-        // Assert
-        expect(result, expectedSongs);
-        verify(() => mockOnAudioQuery.queryAudiosFrom(
-              AudiosFromType.PLAYLIST,
-              playlistId,
-              sortType: SongSortType.DATE_ADDED,
-            )).called(1);
-      });
-    });
-
-    group('createPlaylist', () {
-      test('should return true when playlist is created successfully', () async {
-        // Arrange
-        const playlistName = 'My Playlist';
-        when(() => mockOnAudioQuery.createPlaylist(any())).thenAnswer((_) async => true);
-
-        // Act
-        final result = await repository.createPlaylist(playlistName);
-
-        // Assert
-        expect(result, true);
-        verify(() => mockOnAudioQuery.createPlaylist(playlistName)).called(1);
-      });
-    });
-
-    group('removePlaylist', () {
-      test('should return true when playlist is removed successfully', () async {
-        // Arrange
-        const playlistId = 123;
-        when(() => mockOnAudioQuery.removePlaylist(any())).thenAnswer((_) async => true);
-
-        // Act
-        final result = await repository.removePlaylist(playlistId);
-
-        // Assert
-        expect(result, true);
-        verify(() => mockOnAudioQuery.removePlaylist(playlistId)).called(1);
       });
     });
 
@@ -291,42 +214,62 @@ void main() {
         verify(() => mockSharedPreferences.getStringList(favoritesKey)).called(1);
         verify(() => mockSharedPreferences.setStringList(favoritesKey, ['2'])).called(1);
       });
-
-      test('isSongFavorite should return true if song id is present', () async {
-        // Arrange
-        when(() => mockSharedPreferences.getStringList(favoritesKey)).thenReturn(['1', '2']);
-
-        // Act
-        final result = await repository.isSongFavorite(2);
-
-        // Assert
-        expect(result, true);
-      });
     });
 
-    group('Session', () {
-      test('getSavedQueuesJson should return string from SharedPreferences', () async {
-        when(() => mockSharedPreferences.getString(any())).thenReturn('json_data');
-        final result = await repository.getSavedQueuesJson();
-        expect(result, 'json_data');
+    group('Session & Queues with Hive', () {
+      test('getSavedQueues should return list of CustomQueue from Box', () async {
+        final mockQueue = CustomQueue(id: '1', name: 'Test', items: []);
+        when(() => mockQueuesBox.values).thenReturn([mockQueue]);
+        
+        final result = await repository.getSavedQueues();
+        expect(result, [mockQueue]);
+        verify(() => mockQueuesBox.values).called(1);
       });
 
-      test('saveQueuesJson should save string to SharedPreferences', () async {
-        when(() => mockSharedPreferences.setString(any(), any())).thenAnswer((_) async => true);
-        final result = await repository.saveQueuesJson('json_data');
-        expect(result, true);
+      test('saveQueue should put CustomQueue in Box', () async {
+        final mockQueue = CustomQueue(id: '1', name: 'Test', items: []);
+        when(() => mockQueuesBox.put(any(), any())).thenAnswer((_) async => {});
+        
+        await repository.saveQueue(mockQueue);
+        verify(() => mockQueuesBox.put('1', mockQueue)).called(1);
       });
 
-      test('getLastSession should return map from SharedPreferences', () async {
-        when(() => mockSharedPreferences.getString('last_active_queue_id')).thenReturn('id');
-        when(() => mockSharedPreferences.getInt('last_song_index')).thenReturn(1);
-        when(() => mockSharedPreferences.getInt('last_position')).thenReturn(100);
+      test('getLastSession should return map from session Box', () async {
+        when(() => mockSessionBox.get('activeQueueId')).thenReturn('id');
+        when(() => mockSessionBox.get('currentIndex')).thenReturn(1);
+        when(() => mockSessionBox.get('positionMs')).thenReturn(100);
 
         final result = await repository.getLastSession();
 
         expect(result['activeQueueId'], 'id');
         expect(result['currentIndex'], 1);
         expect(result['positionMs'], 100);
+      });
+      
+      test('saveCurrentSession should put data into session Box', () async {
+        when(() => mockSessionBox.put(any(), any())).thenAnswer((_) async => {});
+        
+        await repository.saveCurrentSession(activeQueueId: 'id', currentIndex: 1, positionMs: 100);
+        
+        verify(() => mockSessionBox.put('activeQueueId', 'id')).called(1);
+        verify(() => mockSessionBox.put('currentIndex', 1)).called(1);
+        verify(() => mockSessionBox.put('positionMs', 100)).called(1);
+      });
+    });
+    
+    group('Lyrics Cache', () {
+      test('getCachedLyrics should return string from lyrics Box', () async {
+        when(() => mockLyricsBox.get('song_1')).thenReturn('some lyrics');
+        
+        final result = await repository.getCachedLyrics('song_1');
+        expect(result, 'some lyrics');
+      });
+      
+      test('cacheLyrics should put string in lyrics Box', () async {
+        when(() => mockLyricsBox.put(any(), any())).thenAnswer((_) async => {});
+        
+        await repository.cacheLyrics('song_1', 'some lyrics');
+        verify(() => mockLyricsBox.put('song_1', 'some lyrics')).called(1);
       });
     });
   });

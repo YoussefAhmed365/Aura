@@ -9,8 +9,17 @@ import 'features/music_player/presentation/manager/player_bloc.dart';
 import 'features/settings/presentation/manager/theme_cubit.dart';
 import 'features/splash/presentation/splash_screen.dart';
 
-void main() {
+import 'package:hive_flutter/hive_flutter.dart';
+import 'core/models/media_item_adapter.dart';
+import 'features/music_player/domain/models/custom_queue_adapter.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  await Hive.initFlutter();
+  Hive.registerAdapter(MediaItemAdapter());
+  Hive.registerAdapter(CustomQueueAdapter());
+
   runApp(const AppStart());
 }
 
