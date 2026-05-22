@@ -5,7 +5,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:audio_service/audio_service.dart';
-import '../../domain/models/custom_queue.dart';
+import 'package:aura/features/music_player/domain/models/custom_queue.dart';
 
 @LazySingleton(as: AudioRepository)
 class AudioRepositoryImpl implements AudioRepository {

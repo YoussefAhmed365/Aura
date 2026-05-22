@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
-import '../../main_wrapper.dart';
+import 'package:aura/features/main_wrapper.dart';
 
 class SongListByEntity extends StatefulWidget {
   final int id;

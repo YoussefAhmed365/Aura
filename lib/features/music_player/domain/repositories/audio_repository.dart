@@ -1,5 +1,5 @@
 import 'package:on_audio_query/on_audio_query.dart';
-import '../models/custom_queue.dart';
+import 'package:aura/features/music_player/domain/models/custom_queue.dart';
 
 abstract class AudioRepository {
   // Get Music

@@ -3,7 +3,7 @@ import 'package:aura/features/music_player/presentation/manager/player_bloc.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import '../../../core/widgets/tob_bar.dart';
+import 'package:aura/core/widgets/tob_bar.dart';
 
 class PlaylistModel {
   final String name;

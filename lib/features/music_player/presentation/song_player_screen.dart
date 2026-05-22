@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:palette_generator_master/palette_generator_master.dart';
-import 'equalizer.dart';
+import 'package:aura/features/music_player/presentation/equalizer.dart';
 import 'package:aura/core/di/injection.dart';
 
 class SongPlayerScreen extends StatefulWidget {

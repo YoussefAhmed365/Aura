@@ -48,6 +48,8 @@ class SliverListTile<T> extends StatelessWidget {
   }
 
   Widget _buildList(BuildContext context, List<T> items) {
+    final themeData = Theme.of(context);
+    final theme = themeData.textTheme;
     return SliverList(
       delegate: SliverChildBuilderDelegate((context, index) {
         final item = items[index];
@@ -55,7 +57,7 @@ class SliverListTile<T> extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: InkWell(
             onTap: () => onTap(items, index),
-            splashColor: Theme.of(context).colorScheme.surface,
+            splashColor: themeData.colorScheme.surface,
             child: Row(
               children: [
                 // Rounded Artwork
@@ -82,14 +84,14 @@ class SliverListTile<T> extends StatelessWidget {
                     children: [
                       Text(
                         title(item),
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: theme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         subtitle(item),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 12),
+                        style: theme.labelMedium?.copyWith(color: Colors.grey),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -100,7 +102,63 @@ class SliverListTile<T> extends StatelessWidget {
                 // More Options Icon
                 IconButton(
                   icon: const Icon(Icons.more_horiz, color: Colors.grey),
-                  onPressed: onMorePressed ?? () {},
+                  onPressed:
+                      onMorePressed ??
+                      () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxHeight: MediaQuery.of(context).size.height * 0.7, // 70% of screen height
+                                  maxWidth: 400, // Fixed width looks cleaner on tablets/web
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 20, right: 20, left: 20, bottom: 5),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        title(item),
+                                        style: theme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Expanded(
+                                        child: ListView(
+                                          shrinkWrap: true, // Crucial: makes the list only as tall as its items
+                                          children: [
+                                            _buildDialogItem(context, Icons.info_outline_rounded, 'File information', 'info'),
+                                            _buildDialogItem(context, Icons.remove_circle_outline, 'Remove from queue', 'remove'),
+                                            const Divider(),
+                                            _buildDialogItem(context, Icons.skip_next, 'Play after current song', 'play_after_current'),
+                                            _buildDialogItem(context, Icons.playlist_play_rounded, 'Add to a queue', 'add_to_queue'),
+                                            _buildDialogItem(context, Icons.playlist_add, 'Add to playlists', 'add_to_playlists'),
+                                            const Divider(),
+                                            _buildDialogItem(context, Icons.play_circle_outline_rounded, 'Preview', 'preview'),
+                                            _buildDialogItem(context, Icons.pause_circle_outline_rounded, 'Stop after this song', 'stop_after_this_song'),
+                                            _buildDialogItem(context, Icons.edit, 'Edit tags', 'edit'),
+                                            _buildDialogItem(context, Icons.share_rounded, 'Share', 'share'),
+                                            const Divider(),
+                                            _buildDialogItem(context, Icons.check_box_outlined, 'Select song', 'select'),
+                                            _buildDialogItem(context, Icons.select_all_rounded, 'Select all songs', 'select_all'),
+                                            _buildDialogItem(context, Icons.delete_rounded, 'Delete permanently', 'delete'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ).then((value) {
+                          if (value == 'remove') {
+                            // Handle your logic here
+                          }
+                        });
+                      },
                 ),
               ],
             ),
@@ -109,4 +167,13 @@ class SliverListTile<T> extends StatelessWidget {
       }, childCount: items.length),
     );
   }
+}
+
+// Helper method to keep code clean
+Widget _buildDialogItem(BuildContext context, IconData icon, String label, String value) {
+  return ListTile(
+    leading: Icon(icon, size: 25),
+    title: Text(label, style: Theme.of(context).textTheme.bodyLarge),
+    onTap: () => Navigator.pop(context, value),
+  );
 }

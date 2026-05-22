@@ -73,7 +73,6 @@ class AuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   // --- 1. Queue Management ---
-
   @override
   Future<void> addQueueItems(List<MediaItem> mediaItems) async {
     // Convert MediaItems to audio sources
@@ -81,10 +80,27 @@ class AuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     // Add items to the live playlist (without stopping the player)
     await _playlist.addAll(audioSource);
+  }
 
-    // Update the queue in AudioService (for system display purposes)
-    final newQueue = queue.value..addAll(mediaItems);
-    queue.add(newQueue);
+  @override
+  Future<void> removeQueueItem(MediaItem mediaItem) async {
+    final currentQueue = queue.value;
+    final index = currentQueue.indexWhere((item) => item.id == mediaItem.id);
+    if (index != -1) {
+      await _playlist.removeAt(index);
+    }
+  }
+
+  Future<void> removeQueueItems(List<MediaItem> mediaItems) async {
+    final idsToRemove = mediaItems.map((m) => m.id).toSet();
+    final currentQueue = queue.value;
+
+    // Iterate backwards to maintain correct indices during removal
+    for (var i = currentQueue.length - 1; i >= 0; i--) {
+      if (idsToRemove.contains(currentQueue[i].id)) {
+        await _playlist.removeAt(i);
+      }
+    }
   }
 
   @override

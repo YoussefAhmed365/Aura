@@ -112,6 +112,22 @@ class ReorderQueueEvent extends PlayerEvent {
   List<Object> get props => [oldIndex, newIndex];
 }
 
+class AddSongsToQueueEvent extends PlayerEvent {
+  final List<SongModel> songs;
+  const AddSongsToQueueEvent(this.songs);
+
+  @override
+  List<Object> get props => [songs];
+}
+
+class RemoveSongsFromQueueEvent extends PlayerEvent {
+  final List<MediaItem> songs;
+  const RemoveSongsFromQueueEvent(this.songs);
+
+  @override
+  List<Object> get props => [songs];
+}
+
 // ------------------------------------------------------------
 
 class _MediaItemUpdated extends PlayerEvent {

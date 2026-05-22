@@ -6,7 +6,7 @@ import 'package:aura/features/songs/presentation/songs_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../core/widgets/tob_bar.dart';
+import 'package:aura/core/widgets/tob_bar.dart';
 
 class MainWrapperPage extends StatefulWidget {
   final int? index;

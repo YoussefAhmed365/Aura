@@ -6,8 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
-import '../../domain/models/custom_queue.dart';
-import '../../domain/repositories/audio_repository.dart';
+import 'package:aura/features/music_player/domain/models/custom_queue.dart';
+import 'package:aura/features/music_player/domain/repositories/audio_repository.dart';
 
 part 'player_event.dart';
 part 'player_state.dart';
@@ -46,6 +46,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<_PlaybackStateUpdated>(_onPlaybackStateUpdated);
     on<_PositionUpdated>(_onPositionUpdated);
     on<_QueueUpdated>(_onQueueUpdated);
+    on<AddSongsToQueueEvent>(_onAddSongsToQueue);
+    on<RemoveSongsFromQueueEvent>(_onRemoveSongsFromQueue);
 
     _listenToAudioHandler();
 
@@ -270,6 +272,28 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       
       final favoriteSongs = await _audioRepository.getSongsByIds(updatedFavorites);
       emit(state.copyWith(favoritesSongIds: updatedFavorites, favoriteSongs: favoriteSongs, isFavorite: !isFavorite));
+    }
+  }
+
+  Future<void> _onAddSongsToQueue(AddSongsToQueueEvent event, Emitter<PlayerState> emit) async {
+    final mediaItems = event.songs.map((song) => MediaItem(
+      id: song.id.toString(),
+      album: song.album ?? "Unknown Album",
+      title: song.title,
+      artist: song.artist ?? "Unknown Artist",
+      duration: Duration(milliseconds: song.duration ?? 0),
+      artUri: Uri.parse("content://media/external/audio/media/${song.id}/albumart"),
+      extras: {'url': song.data, 'uri': song.uri},
+    )).toList();
+
+    await _audioHandler.addQueueItems(mediaItems);
+
+    // Note: _onQueueUpdated will handle the state and repository update via the stream listener
+  }
+
+  Future<void> _onRemoveSongsFromQueue(RemoveSongsFromQueueEvent event, Emitter<PlayerState> emit) async {
+    for (var song in event.songs) {
+      await _audioHandler.removeQueueItem(song);
     }
   }
 

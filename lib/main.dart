@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'core/di/injection.dart';
-import 'core/theme/app_theme.dart';
-import 'core/widgets/tob_bar.dart';
-import 'features/main_wrapper.dart';
-import 'features/music_player/presentation/manager/player_bloc.dart';
-import 'features/settings/presentation/manager/theme_cubit.dart';
-import 'features/splash/presentation/splash_screen.dart';
+import 'package:aura/core/di/injection.dart';
+import 'package:aura/core/theme/app_theme.dart';
+import 'package:aura/core/widgets/tob_bar.dart';
+import 'package:aura/features/main_wrapper.dart';
+import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
+import 'package:aura/features/settings/presentation/manager/theme_cubit.dart';
+import 'package:aura/features/splash/presentation/splash_screen.dart';
 
 import 'package:hive_flutter/hive_flutter.dart';
-import 'core/models/media_item_adapter.dart';
-import 'features/music_player/domain/models/custom_queue_adapter.dart';
+import 'package:aura/core/models/media_item_adapter.dart';
+import 'package:aura/features/music_player/domain/models/custom_queue_adapter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
