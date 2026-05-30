@@ -1,0 +1,10 @@
+--- test/features/music_player/presentation/manager/player_bloc_test.dart
++++ test/features/music_player/presentation/manager/player_bloc_test.dart
+@@ -58,6 +58,7 @@
+     when(() => mockAudioRepository.getAllFavoriteSongsIds()).thenAnswer((_) async => []);
+     when(() => mockAudioRepository.getSavedQueues()).thenAnswer((_) async => []);
+     when(() => mockAudioRepository.getLastSession()).thenAnswer((_) async => {});
++    when(() => mockAudioRepository.getSongsByIds(any())).thenAnswer((_) async => []);
+     when(() => mockAudioRepository.saveCurrentSession(
+           index: any(named: 'index'),
+           positionMs: any(named: 'positionMs'),

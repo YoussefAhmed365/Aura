@@ -1,0 +1,11 @@
+--- test/features/music_player/presentation/manager/player_bloc_test.dart
++++ test/features/music_player/presentation/manager/player_bloc_test.dart
+@@ -194,7 +194,7 @@
+         },
+         act: (bloc) => bloc.add(const ToggleFavoriteEvent(1)),
+         expect: () => [
+-          const PlayerState(favoritesSongIds: [1]),
++          const PlayerState(favoritesSongIds: [1], isFavorite: true),
+         ],
+         verify: (_) {
+           verify(() => mockAudioRepository.addSongToFavorites(1)).called(1);

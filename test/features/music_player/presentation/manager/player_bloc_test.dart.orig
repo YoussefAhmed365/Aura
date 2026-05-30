@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:aura/features/music_player/domain/models/custom_queue.dart';
 import 'package:aura/features/music_player/domain/repositories/audio_repository.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -15,8 +14,6 @@ import 'package:rxdart/rxdart.dart';
 class MockAudioHandler extends Mock implements AudioHandler {}
 class MockSongModel extends Mock implements SongModel {}
 class MockAudioRepository extends Mock implements AudioRepository {}
-
-class CustomQueueFake extends Fake implements CustomQueue {}
 
 void main() {
   late PlayerBloc playerBloc;
@@ -32,7 +29,6 @@ void main() {
   setUpAll(() {
     registerFallbackValue(const Duration(seconds: 0));
     registerFallbackValue(const MediaItem(id: '0', title: 'dummy'));
-    registerFallbackValue(CustomQueueFake());
   });
 
   setUp(() {
@@ -61,7 +57,6 @@ void main() {
     when(() => mockAudioRepository.getAllFavoriteSongsIds()).thenAnswer((_) async => []);
     when(() => mockAudioRepository.getSavedQueues()).thenAnswer((_) async => []);
     when(() => mockAudioRepository.getLastSession()).thenAnswer((_) async => {});
-    when(() => mockAudioRepository.getSongsByIds(any())).thenAnswer((_) async => []);
     when(() => mockAudioRepository.saveCurrentSession(
           activeQueueId: any(named: 'activeQueueId'),
           currentIndex: any(named: 'currentIndex'),
@@ -194,7 +189,7 @@ void main() {
         },
         act: (bloc) => bloc.add(const ToggleFavoriteEvent(1)),
         expect: () => [
-          const PlayerState(favoritesSongIds: [1], isFavorite: true),
+          const PlayerState(favoritesSongIds: [1]),
         ],
         verify: (_) {
           verify(() => mockAudioRepository.addSongToFavorites(1)).called(1);

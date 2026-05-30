@@ -9,21 +9,35 @@ import 'package:aura/features/music_player/domain/models/custom_queue.dart';
 
 @module
 abstract class RegisterModule {
-  // 1. Assign SharedPreferences to save settings (such: last song played)
-  // We used @preResolve because this library need time for initialization (await) before app starting
   @preResolve
   @singleton
   Future<SharedPreferences> get prefs => SharedPreferences.getInstance();
 
+  @lazySingleton
+  AndroidEqualizer get androidEqualizer => AndroidEqualizer();
+
+  @lazySingleton
+  AndroidLoudnessEnhancer get androidLoudnessEnhancer => AndroidLoudnessEnhancer();
+
+  // AndroidBassBoost doesn't exist in just_audio out of the box in 0.10.5 without an extra extension or it was removed,
+  // so we'll omit it for now and only initialize available effects.
+
   // 2. Assign actual audio player (Internal Engine)
   @lazySingleton
-  AudioPlayer get audioPlayer => AudioPlayer();
+  AudioPlayer get audioPlayer {
+    return AudioPlayer(
+      audioPipeline: AudioPipeline(
+        androidAudioEffects: [
+          androidEqualizer,
+          androidLoudnessEnhancer,
+        ],
+      ),
+    );
+  }
 
-  // 3. Assign query library we used in AudioRepositoryImpl
   @lazySingleton
   OnAudioQuery get onAudioQuery => OnAudioQuery();
 
-  // 4. assign background audio service (AudioService) to play music even when app is closed
   @preResolve
   @singleton
   Future<AudioHandler> get audioHandler async {
@@ -32,12 +46,11 @@ abstract class RegisterModule {
       config: const AudioServiceConfig(
         androidNotificationChannelId: 'com.codev.aura.music_player.channel.audio',
         androidNotificationChannelName: 'Aura Music Player',
-        androidNotificationOngoing: true, // Keep the notification turned on to not to close the player
+        androidNotificationOngoing: true,
       ),
     );
   }
 
-  // 5. Hive Boxes
   @preResolve
   @Named('customQueuesBox')
   @singleton
