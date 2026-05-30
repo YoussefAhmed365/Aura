@@ -13,6 +13,7 @@ import 'dart:async' as _i687;
 
 import 'package:audio_service/audio_service.dart' as _i87;
 import 'package:aura/core/di/register_module.dart' as _i926;
+import 'package:aura/features/music_player/bloc/equalizer_cubit.dart' as _i451;
 import 'package:aura/features/music_player/data/repositories/audio_repository_impl.dart'
     as _i1050;
 import 'package:aura/features/music_player/domain/models/custom_queue.dart'
@@ -48,15 +49,25 @@ extension GetItInjectableX on _i174.GetIt {
       () => registerModule.audioHandler,
       preResolve: true,
     );
+    gh.lazySingleton<_i501.AndroidEqualizer>(
+      () => registerModule.androidEqualizer,
+    );
+    gh.lazySingleton<_i501.AndroidLoudnessEnhancer>(
+      () => registerModule.androidLoudnessEnhancer,
+    );
     gh.lazySingleton<_i501.AudioPlayer>(() => registerModule.audioPlayer);
     gh.lazySingleton<_i859.OnAudioQuery>(() => registerModule.onAudioQuery);
+    gh.factory<_i451.EqualizerCubit>(
+      () => _i451.EqualizerCubit(
+        prefs: gh<_i460.SharedPreferences>(),
+        androidEqualizer: gh<_i501.AndroidEqualizer>(),
+        androidLoudnessEnhancer: gh<_i501.AndroidLoudnessEnhancer>(),
+      ),
+    );
     await gh.singletonAsync<_i986.Box<dynamic>>(
       () => registerModule.sessionBox,
       instanceName: 'sessionBox',
       preResolve: true,
-    );
-    gh.factory<_i343.ThemeCubit>(
-      () => _i343.ThemeCubit(gh<_i460.SharedPreferences>()),
     );
     await gh.singletonAsync<_i986.Box<String>>(
       () => registerModule.lyricsBox,
@@ -73,6 +84,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i460.SharedPreferences>(),
         gh<_i87.AudioHandler>(),
       ),
+    );
+    gh.factory<_i343.ThemeCubit>(
+      () => _i343.ThemeCubit(gh<_i460.SharedPreferences>()),
     );
     gh.lazySingleton<_i771.AudioRepository>(
       () => _i1050.AudioRepositoryImpl(

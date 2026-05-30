@@ -1,0 +1,35 @@
+--- test/features/music_player/presentation/manager/player_bloc_test.dart
++++ test/features/music_player/presentation/manager/player_bloc_test.dart
+@@ -1,6 +1,7 @@
+ import 'dart:async';
+
+ import 'package:audio_service/audio_service.dart';
++import 'package:aura/features/music_player/domain/models/custom_queue.dart';
+ import 'package:aura/features/music_player/domain/repositories/audio_repository.dart';
+ import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
+ import 'package:bloc_test/bloc_test.dart';
+@@ -16,6 +17,8 @@
+ class MockAudioHandler extends Mock implements AudioHandler {}
+ class MockSongModel extends Mock implements SongModel {}
+ class MockAudioRepository extends Mock implements AudioRepository {}
++
++class CustomQueueFake extends Fake implements CustomQueue {}
+
+ void main() {
+   late PlayerBloc playerBloc;
+@@ -29,6 +32,7 @@
+   setUpAll(() {
+     registerFallbackValue(const Duration(seconds: 0));
+     registerFallbackValue(const MediaItem(id: '0', title: 'dummy'));
++    registerFallbackValue(CustomQueueFake());
+   });
+
+   setUp(() {
+@@ -58,6 +62,7 @@
+     when(() => mockAudioRepository.getAllFavoriteSongsIds()).thenAnswer((_) async => []);
+     when(() => mockAudioRepository.getSavedQueues()).thenAnswer((_) async => []);
+     when(() => mockAudioRepository.getLastSession()).thenAnswer((_) async => {});
++    when(() => mockAudioRepository.getSongsByIds(any())).thenAnswer((_) async => []);
+     when(() => mockAudioRepository.saveCurrentSession(
+           index: any(named: 'index'),
+           positionMs: any(named: 'positionMs'),

@@ -52,7 +52,7 @@ dependencies:
   # Database
   hive: ^2.2.3 # Lightweight and blazing fast key-value database written in pure Dart. Strongly encrypted using AES-256.
   hive_flutter: ^1.1.0 # Extension for Hive. Makes it easier to use Hive in Flutter apps
-  shared_preferences: ^2.5.4
+  shared_preferences: ^2.5.5
   package_info_plus: ^9.0.0
 
   # UI & Design
@@ -60,6 +60,7 @@ dependencies:
   flutter_animate: ^4.5.2
   palette_generator_master: ^1.0.1
   fluttertoast: ^9.0.0 # Flutter plugin for querying information about the application package, such as CFBundleVersion on iOS or versionCode on Android.
+  json_annotation: ^4.12.0
 
 dependency_overrides:
   on_audio_query_android:
@@ -70,8 +71,9 @@ dev_dependencies:
     sdk: flutter
   bloc_test: ^10.0.0 # A testing library which makes it easy to test blocs. Built to be used with the bloc state management package.
   mocktail: ^1.0.4 # A Dart mock library which simplifies mocking with null safety support and no manual mocks or code generation.
-  build_runner: ^2.11.0 # A build system for Dart code generation and modular compilation.
+  build_runner: ^2.15.0 # A build system for Dart code generation and modular compilation.
   injectable_generator: ^2.9.1 # Injectable is a convenient code generator for get_it. Inspired by Angular DI, Guice DI and inject.dart.
+  json_serializable: ^6.14.0
 
 # The following section is specific to Flutter packages.
 flutter:

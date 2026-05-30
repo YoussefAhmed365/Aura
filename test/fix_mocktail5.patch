@@ -1,0 +1,17 @@
+--- test/features/music_player/presentation/manager/player_bloc_test.dart
++++ test/features/music_player/presentation/manager/player_bloc_test.dart
+@@ -188,14 +188,14 @@
+       blocTest<PlayerBloc, PlayerState>(
+         'ToggleFavoriteEvent adds song to favorites when not present',
+-        seed: () => const PlayerState(favoritesSongIds: []),
++        seed: () => const PlayerState(favoritesSongIds: [], isSongsQueueReversed: true),
+         build: () {
+           when(() => mockAudioRepository.addSongToFavorites(1)).thenAnswer((_) async => true);
+           return playerBloc;
+         },
+         act: (bloc) => bloc.add(const ToggleFavoriteEvent(1)),
+         expect: () => [
+-          const PlayerState(favoritesSongIds: [1]),
++          const PlayerState(favoritesSongIds: [1], isSongsQueueReversed: true),
+         ],
+         verify: (_) {
