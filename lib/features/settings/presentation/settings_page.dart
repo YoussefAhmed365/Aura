@@ -1,5 +1,7 @@
 import 'package:aura/core/widgets/tob_bar.dart';
+import 'package:aura/features/music_player/presentation/equalizer.dart';
 import 'package:aura/features/settings/presentation/manager/theme_cubit.dart';
+import 'package:aura/features/settings/widgets/audio_fading_option.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -11,7 +13,6 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-
         // Page Content
         CustomScrollView(
           slivers: [
@@ -41,17 +42,17 @@ class SettingsPage extends StatelessWidget {
             ),
             SliverList(
               delegate: SliverChildListDelegate([
-                ListTile(
-                  leading: const Icon(Icons.compare_arrows_rounded),
-                  title: const Text("Crossfade"),
-                  subtitle: const Text("5 seconds"),
-                  trailing: Switch(value: true, onChanged: (v) {}), // Dummy
-                ),
+                AudioFadingOption(),
                 ListTile(
                   leading: const Icon(Icons.graphic_eq_rounded),
                   title: const Text("Equalizer"),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () {}, // Dummy
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EqualizerScreen(),
+                    ),
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.skip_next_rounded),

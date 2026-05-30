@@ -21,6 +21,8 @@ import 'package:aura/features/music_player/domain/repositories/audio_repository.
     as _i771;
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart'
     as _i505;
+import 'package:aura/features/settings/presentation/manager/playback_settings_cubit.dart'
+    as _i672;
 import 'package:aura/features/settings/presentation/manager/theme_cubit.dart'
     as _i343;
 import 'package:get_it/get_it.dart' as _i174;
@@ -65,6 +67,12 @@ extension GetItInjectableX on _i174.GetIt {
       () => registerModule.customQueuesBox,
       instanceName: 'customQueuesBox',
       preResolve: true,
+    );
+    gh.factory<_i672.PlaybackSettingsCubit>(
+      () => _i672.PlaybackSettingsCubit(
+        gh<_i460.SharedPreferences>(),
+        gh<_i87.AudioHandler>(),
+      ),
     );
     gh.lazySingleton<_i771.AudioRepository>(
       () => _i1050.AudioRepositoryImpl(

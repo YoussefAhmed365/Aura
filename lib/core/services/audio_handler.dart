@@ -26,10 +26,17 @@ class AuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   bool isFavorite = false;
 
+  // Fade settings
+  bool _fadeEnabled = false;
+  int _fadeStartDuration = 3;
+  int _fadeEndDuration = 3;
+  bool _isFading = false;
+
   static const String actionAddFavorite = 'action_add_favorite';
   static const String actionRemoveFavorite = 'action_remove_favorite';
   static const String actionRestoreSession = 'action_restore_session';
   static const String actionMoveQueueItem = 'action_move_queue_item';
+  static const String actionUpdateFadeSettings = 'action_update_fade_settings';
 
   static const _favortieOutlinedControl = MediaControl(
     androidIcon: 'drawable/ic_favorite_outlined',
@@ -170,10 +177,43 @@ class AuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // --- 2. Playback Controls ---
 
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() async {
+    if (_fadeEnabled && !_isFading) {
+      _isFading = true;
+      await _player.setVolume(0.0);
+      _player.play();
+      await _fadeVolume(0.0, 1.0, Duration(seconds: _fadeStartDuration));
+      _isFading = false;
+    } else {
+      await _player.play();
+    }
+  }
 
   @override
-  Future<void> pause() => _player.pause();
+  Future<void> pause() async {
+    if (_fadeEnabled && !_isFading) {
+      _isFading = true;
+      final startVolume = _player.volume;
+      await _fadeVolume(startVolume, 0.0, Duration(seconds: _fadeEndDuration));
+      await _player.pause();
+      await Future.delayed(const Duration(milliseconds: 100));
+      await _player.setVolume(1.0);
+      _isFading = false;
+    } else {
+      await _player.pause();
+    }
+  }
+
+  Future<void> _fadeVolume(double start, double end, Duration duration) async {
+    if (duration == Duration.zero) return;
+    const steps = 40;
+    final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
+    for (int i = 0; i <= steps; i++) {
+      final vol = start + (end - start) * (i / steps);
+      _player.setVolume(vol.clamp(0.0, 1.0));
+      await Future.delayed(stepDuration);
+    }
+  }
 
   @override
   Future<void> seek(Duration position) => _player.seek(position);
@@ -198,7 +238,7 @@ class AuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     // Note: If the player is stopped, seek alone doesn't play, so we add play()
     await _player.seek(Duration.zero, index: index);
     if (!_player.playing) {
-      await _player.play();
+      await play(); // Use our fading play
     }
   }
 
@@ -265,6 +305,13 @@ class AuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       final oldIndex = extras?['oldIndex'] as int;
       final newIndex = extras?['newIndex'] as int;
       await moveQueueItem(oldIndex, newIndex);
+      return;
+    }
+
+    if (name == actionUpdateFadeSettings) {
+      _fadeEnabled = extras?['enabled'] ?? _fadeEnabled;
+      _fadeStartDuration = extras?['startDuration'] ?? _fadeStartDuration;
+      _fadeEndDuration = extras?['endDuration'] ?? _fadeEndDuration;
       return;
     }
   }

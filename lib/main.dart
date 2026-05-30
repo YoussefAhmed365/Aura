@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:aura/core/di/injection.dart';
 import 'package:aura/core/theme/app_theme.dart';
 import 'package:aura/core/widgets/tob_bar.dart';
-import 'package:aura/features/main_wrapper.dart';
 import 'package:aura/features/music_player/presentation/manager/player_bloc.dart';
+import 'package:aura/features/settings/presentation/manager/playback_settings_cubit.dart';
 import 'package:aura/features/settings/presentation/manager/theme_cubit.dart';
 import 'package:aura/features/splash/presentation/splash_screen.dart';
 
@@ -20,7 +20,9 @@ Future<void> main() async {
   Hive.registerAdapter(MediaItemAdapter());
   Hive.registerAdapter(CustomQueueAdapter());
 
-  runApp(const AppStart());
+  await configureDependencies();
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -33,6 +35,7 @@ class MyApp extends StatelessWidget {
         // Request "GetIt" to give a copy of "Bloc"
         BlocProvider(create: (_) => getIt<PlayerBloc>()),
         BlocProvider(create: (_) => getIt<ThemeCubit>()),
+        BlocProvider(create: (_) => getIt<PlaybackSettingsCubit>()),
         BlocProvider(create: (_) => NavigationCubit()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
@@ -43,7 +46,7 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
-            home: const Scaffold(body: MainWrapperPage(index: 0)),
+            home: const AppStart(),
           );
         },
       ),

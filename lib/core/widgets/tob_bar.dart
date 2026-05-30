@@ -1,14 +1,17 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TopBar extends StatelessWidget {
+  final VoidCallback? buttonFunction;
+  final IconData? icon;
   final String title;
   final String? subtitle;
   final bool hasSearch;
   final bool hasSearchBar;
 
-  const TopBar({super.key, required this.title, this.subtitle, this.hasSearch = false, this.hasSearchBar = false});
+  const TopBar({super.key, this.buttonFunction, this.icon, required this.title, this.subtitle, this.hasSearch = false, this.hasSearchBar = false});
 
   static double height = 70;
 
@@ -22,6 +25,7 @@ class TopBar extends StatelessWidget {
       height = 100;
     }
 
+    // Container's position & shape
     return Positioned(
       top: 20,
       left: 20,
@@ -32,19 +36,32 @@ class TopBar extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.only(left: 8, right: 16, top: 16, bottom: 12),
             decoration: BoxDecoration(
               gradient: LinearGradient(colors: [Theme.of(context).colorScheme.surface.withAlpha(16), Theme.of(context).colorScheme.surface.withAlpha(5)], begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Theme.of(context).colorScheme.surface.withAlpha(30)),
             ),
             alignment: Alignment.centerLeft,
+
+            // Content
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Title, Subtitle, & Search Button
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    if (icon != null)
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        onPressed: buttonFunction,
+                        icon: Icon(icon, size: 24,),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    if (icon != null) const SizedBox(width: 5),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -52,6 +69,8 @@ class TopBar extends StatelessWidget {
                         if (subtitle != null) Text(subtitle!, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.secondary)),
                       ],
                     ),
+
+                    // Search Button
                     if (hasSearch) const Spacer(),
                     if (hasSearch)
                       Container(
@@ -70,6 +89,7 @@ class TopBar extends StatelessWidget {
                   ],
                 ),
 
+                // Search Bar
                 if (hasSearchBar) const SizedBox(height: 20),
                 if (hasSearchBar)
                   Container(

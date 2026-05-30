@@ -1,6 +1,6 @@
 import 'package:aura/core/di/injection.dart';
-import 'package:aura/core/theme/app_theme.dart';
-import 'package:aura/main.dart';
+import 'package:aura/features/main_wrapper.dart';
+// تم إزالة استدعاء AppTheme لأنه سيأخذ الـ Theme من main.dart تلقائياً
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -25,13 +25,6 @@ class _AppStartState extends State<AppStart> {
 
   Future<void> _initApp() async {
     try {
-      await configureDependencies().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw "Initialization timed out. Check AudioService or Permissions.";
-        },
-      );
-
       if (mounted) {
         await _checkAndRequestPermissions();
       }
@@ -85,177 +78,118 @@ class _AppStartState extends State<AppStart> {
       if (kDebugMode) {
         debugPrint("Error state: $_error");
       }
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        home: Scaffold(
-          body: Stack(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF2E1C4E), Colors.black],
-                  ),
+      // إرجاع Scaffold مباشرة بدون MaterialApp
+      return Scaffold(
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 80, color: Colors.white70),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Initialization Error",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "An unexpected error occurred during initialization. Please try again.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Colors.white70),
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _error = null;
+                          _isInitialized = false;
+                          _isPermissionDenied = false;
+                        });
+                        _initApp();
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12)),
+                      child: const Text("Retry"),
+                    ),
+                  ],
                 ),
               ),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 80,
-                        color: Colors.white70,
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        "Initialization Error",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "An unexpected error occurred during initialization. Please try again.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.white70),
-                      ),
-                      const SizedBox(height: 30),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _error = null;
-                            _isInitialized = false;
-                            _isPermissionDenied = false;
-                          });
-                          _initApp();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text("Retry"),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
 
     if (_isPermissionDenied) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        home: Scaffold(
-          body: Stack(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF2E1C4E), Colors.black],
-                  ),
+      // إرجاع Scaffold مباشرة بدون MaterialApp
+      return Scaffold(
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.folder_off, size: 80, color: Colors.white70),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Permission Required",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Storage permission is required to access your music library. Please grant permission to continue.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Colors.white70),
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed: _checkAndRequestPermissions,
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12)),
+                      child: const Text("Grant Permission"),
+                    ),
+                  ],
                 ),
               ),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.folder_off,
-                        size: 80,
-                        color: Colors.white70,
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        "Permission Required",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Storage permission is required to access your music library. Please grant permission to continue.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.white70),
-                      ),
-                      const SizedBox(height: 30),
-                      ElevatedButton(
-                        onPressed: _checkAndRequestPermissions,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text("Grant Permission"),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
 
     if (!_isInitialized) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        home: Scaffold(
-          body: Stack(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF2E1C4E), Colors.black],
-                  ),
-                ),
+      // إرجاع Scaffold مباشرة بدون MaterialApp
+      return Scaffold(
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E1C4E), Colors.black]),
               ),
+            ),
 
-              // Page Content
-              const SafeArea(
-                child: Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
+            // Page Content
+            const SafeArea(
+              child: Center(child: CircularProgressIndicator(color: Colors.white)),
+            ),
+          ],
         ),
       );
     }
 
-    return const MyApp();
+    return const MainWrapperPage(index: 0);
   }
 }

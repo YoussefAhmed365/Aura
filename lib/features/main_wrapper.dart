@@ -56,12 +56,6 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
     }
   }
 
-  void _onPageChanged(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -80,7 +74,11 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
 
     return BlocBuilder<NavigationCubit, int>(
       builder: (context, currentIndex) {
-        // Sync PageController and NavigationBar with 'currentIndex'
+        // Handle page controller sync if needed
+        if (_pageController.hasClients && _pageController.page?.round() != currentIndex) {
+           _pageController.animateToPage(currentIndex, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+        }
+
         return Scaffold(
           body: Stack(
             children: [
@@ -89,20 +87,24 @@ class _MainWrapperPageState extends State<MainWrapperPage> {
 
               // Page Content
               SafeArea(
-                child: PageView(controller: _pageController, onPageChanged: _onPageChanged, physics: const PageScrollPhysics(), children: const [HomePage(), SongsPage(), SearchPage(), SettingsPage()]),
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (index) => context.read<NavigationCubit>().setTab(index),
+                  physics: const PageScrollPhysics(),
+                  children: const [HomePage(), SongsPage(), SearchPage(), SettingsPage()],
+                ),
               ),
 
               // Mini Player
               Positioned(bottom: MediaQuery.of(context).size.height * -0.86, left: 0, right: 0, child: MiniPlayer()),
             ],
           ),
-
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           bottomNavigationBar: ClipRRect(
             borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
             child: NavigationBar(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: _onBottomNavTapped,
+              selectedIndex: currentIndex,
+              onDestinationSelected: (index) => context.read<NavigationCubit>().setTab(index),
               labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
               destinations: const [
                 NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
