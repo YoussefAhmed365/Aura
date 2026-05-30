@@ -12,25 +12,26 @@
 import 'dart:async' as _i687;
 
 import 'package:audio_service/audio_service.dart' as _i87;
+import 'package:aura/core/di/register_module.dart' as _i926;
+import 'package:aura/features/music_player/bloc/equalizer_cubit.dart' as _i451;
+import 'package:aura/features/music_player/data/repositories/audio_repository_impl.dart'
+    as _i1050;
+import 'package:aura/features/music_player/domain/models/custom_queue.dart'
+    as _i603;
+import 'package:aura/features/music_player/domain/repositories/audio_repository.dart'
+    as _i771;
+import 'package:aura/features/music_player/presentation/manager/player_bloc.dart'
+    as _i505;
+import 'package:aura/features/settings/presentation/manager/playback_settings_cubit.dart'
+    as _i672;
+import 'package:aura/features/settings/presentation/manager/theme_cubit.dart'
+    as _i343;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:hive_flutter/hive_flutter.dart' as _i986;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:just_audio/just_audio.dart' as _i501;
 import 'package:on_audio_query/on_audio_query.dart' as _i859;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
-
-import '../../features/music_player/bloc/equalizer_cubit.dart' as _i240;
-import '../../features/music_player/data/repositories/audio_repository_impl.dart'
-    as _i398;
-import '../../features/music_player/domain/models/custom_queue.dart' as _i300;
-import '../../features/music_player/domain/repositories/audio_repository.dart'
-    as _i889;
-import '../../features/music_player/presentation/manager/player_bloc.dart'
-    as _i330;
-import '../../features/settings/presentation/manager/playback_settings_cubit.dart'
-    as _i653;
-import '../../features/settings/presentation/manager/theme_cubit.dart' as _i407;
-import 'register_module.dart' as _i291;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -56,8 +57,8 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i501.AudioPlayer>(() => registerModule.audioPlayer);
     gh.lazySingleton<_i859.OnAudioQuery>(() => registerModule.onAudioQuery);
-    gh.factory<_i240.EqualizerCubit>(
-      () => _i240.EqualizerCubit(
+    gh.factory<_i451.EqualizerCubit>(
+      () => _i451.EqualizerCubit(
         prefs: gh<_i460.SharedPreferences>(),
         androidEqualizer: gh<_i501.AndroidEqualizer>(),
         androidLoudnessEnhancer: gh<_i501.AndroidLoudnessEnhancer>(),
@@ -73,33 +74,33 @@ extension GetItInjectableX on _i174.GetIt {
       instanceName: 'lyricsBox',
       preResolve: true,
     );
-    await gh.singletonAsync<_i986.Box<_i300.CustomQueue>>(
+    await gh.singletonAsync<_i986.Box<_i603.CustomQueue>>(
       () => registerModule.customQueuesBox,
       instanceName: 'customQueuesBox',
       preResolve: true,
     );
-    gh.factory<_i653.PlaybackSettingsCubit>(
-      () => _i653.PlaybackSettingsCubit(
+    gh.factory<_i672.PlaybackSettingsCubit>(
+      () => _i672.PlaybackSettingsCubit(
         gh<_i460.SharedPreferences>(),
         gh<_i87.AudioHandler>(),
       ),
     );
-    gh.factory<_i407.ThemeCubit>(
-      () => _i407.ThemeCubit(gh<_i460.SharedPreferences>()),
+    gh.factory<_i343.ThemeCubit>(
+      () => _i343.ThemeCubit(gh<_i460.SharedPreferences>()),
     );
-    gh.lazySingleton<_i889.AudioRepository>(
-      () => _i398.AudioRepositoryImpl(
+    gh.lazySingleton<_i771.AudioRepository>(
+      () => _i1050.AudioRepositoryImpl(
         gh<_i859.OnAudioQuery>(),
         gh<_i460.SharedPreferences>(),
-        gh<_i986.Box<_i300.CustomQueue>>(instanceName: 'customQueuesBox'),
+        gh<_i986.Box<_i603.CustomQueue>>(instanceName: 'customQueuesBox'),
         gh<_i986.Box<dynamic>>(instanceName: 'sessionBox'),
         gh<_i986.Box<String>>(instanceName: 'lyricsBox'),
       ),
     );
-    gh.factoryParam<_i330.PlayerBloc, _i687.Stream<Duration>?, dynamic>(
-      (positionStream, _) => _i330.PlayerBloc(
+    gh.factoryParam<_i505.PlayerBloc, _i687.Stream<Duration>?, dynamic>(
+      (positionStream, _) => _i505.PlayerBloc(
         gh<_i87.AudioHandler>(),
-        gh<_i889.AudioRepository>(),
+        gh<_i771.AudioRepository>(),
         positionStream: positionStream,
       ),
     );
@@ -107,4 +108,4 @@ extension GetItInjectableX on _i174.GetIt {
   }
 }
 
-class _$RegisterModule extends _i291.RegisterModule {}
+class _$RegisterModule extends _i926.RegisterModule {}
