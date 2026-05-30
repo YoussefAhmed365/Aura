@@ -1,0 +1,12 @@
+--- test/features/music_player/presentation/manager/player_bloc_test.dart
++++ test/features/music_player/presentation/manager/player_bloc_test.dart
+@@ -194,7 +194,7 @@
+         when(() => mockAudioRepository.getAllFavoriteSongsIds()).thenAnswer((_) async => []);
+       },
+       build: () => playerBloc,
+       act: (bloc) => bloc.add(const ToggleFavoriteEvent(1)),
+       expect: () => [
+-        const PlayerState(favoriteSongsIds: [1])
++        const PlayerState(favoriteSongsIds: [1], isSongsQueueReversed: true)
+       ],
+       verify: (_) {
