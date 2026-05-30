@@ -12,7 +12,11 @@ class AppTheme {
         seedColor: _seedColor,
         brightness: Brightness.light,
       ),
-      textTheme: GoogleFonts.outfitTextTheme(),
+      // ignore: deprecated_member_use
+      sliderTheme: const SliderThemeData(year2023: false),
+      // ignore: deprecated_member_use
+      progressIndicatorTheme: const ProgressIndicatorThemeData(year2023: false),
+      textTheme: GoogleFonts.outfitTextTheme(ThemeData(useMaterial3: true).textTheme),
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         elevation: 0,
@@ -29,7 +33,11 @@ class AppTheme {
         surface: const Color(0xFF000000),
       ),
       scaffoldBackgroundColor: const Color(0xFF000000),
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
+      // ignore: deprecated_member_use
+      sliderTheme: const SliderThemeData(year2023: false),
+      // ignore: deprecated_member_use
+      progressIndicatorTheme: const ProgressIndicatorThemeData(year2023: false),
+      textTheme: GoogleFonts.outfitTextTheme(ThemeData(useMaterial3: true, brightness: Brightness.dark).textTheme),
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         elevation: 0,
